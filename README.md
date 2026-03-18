@@ -71,4 +71,4 @@ MongoDB Atlas: `PhucLong_Hanoi`
 
 ---
 
-*Đồ án cuối kỳ — Phân tích Dữ liệu Web*
+*Đồ án cuối kỳ - Phân tích Dữ liệu Web - Lê Bá Thiền*
