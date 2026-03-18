@@ -60,6 +60,25 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/alerts`, { params: httpParams });
     }
 
+    // ── Live Monitor ──
+    getLiveRecent(params: any = {}): Observable<any> {
+        let httpParams = new HttpParams();
+        Object.keys(params).forEach(key => {
+            if (params[key] !== undefined && params[key] !== null) {
+                httpParams = httpParams.set(key, params[key]);
+            }
+        });
+        return this.http.get(`${this.baseUrl}/live-monitor/recent`, { params: httpParams });
+    }
+
+    analyzeReview(reviewId: string): Observable<any> {
+        return this.http.post(`${this.baseUrl}/live-monitor/analyze/${encodeURIComponent(reviewId)}`, {});
+    }
+
+    scanReviews(maxItems = 10): Observable<any> {
+        return this.http.post(`${this.baseUrl}/live-monitor/scan`, { maxItems });
+    }
+
     // ── Health ──
     getHealth(): Observable<any> {
         return this.http.get(`${this.baseUrl}/health`);

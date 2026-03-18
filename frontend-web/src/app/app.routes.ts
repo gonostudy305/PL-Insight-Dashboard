@@ -8,6 +8,11 @@ export const routes: Routes = [
             import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
     },
     {
+        path: 'live-monitor',
+        loadComponent: () =>
+            import('./pages/live-monitor/live-monitor.component').then(m => m.LiveMonitorComponent),
+    },
+    {
         path: 'reviews',
         loadComponent: () =>
             import('./pages/reviews/reviews.component').then(m => m.ReviewsComponent),

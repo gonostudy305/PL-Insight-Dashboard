@@ -19,6 +19,11 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             </a>
           </li>
           <li>
+            <a routerLink="/live-monitor" routerLinkActive="active">
+              <span class="icon">📡</span> Live Monitor
+            </a>
+          </li>
+          <li>
             <a routerLink="/reviews" routerLinkActive="active">
               <span class="icon">💬</span> Đánh giá
             </a>
