@@ -208,13 +208,54 @@ async function layer2_business() {
                 `${o.sentimentScore}% vs expected ${expectedSentiment}%`);
         }
 
-        // alertCount > 0
+        // alertCount = priority-1 only (locked semantic definition)
         if (o.alertCount > 0) {
-            log('L2', 'alertCount is populated (> 0)', 'PASS', `${o.alertCount} alerts`);
+            log('L2', 'alertCount is populated (> 0)', 'PASS', `${o.alertCount} priority-1 alerts`);
         } else {
             log('L2', 'alertCount', 'FAIL', 'Zero alerts');
         }
+
+        // totalQueuedReviews field exists
+        if (o.totalQueuedReviews !== undefined && o.totalQueuedReviews > 0) {
+            log('L2', 'totalQueuedReviews is populated', 'PASS', `${o.totalQueuedReviews} total queued`);
+        } else {
+            log('L2', 'totalQueuedReviews', 'FAIL', 'Missing or zero');
+        }
     } catch (e) { log('L2', 'Overview KPI consistency', 'FAIL', e.message); }
+
+    // 2.2 CRITICAL: alertCount reconciliation (overview vs alerts)
+    try {
+        const o = (await get(`${BASE}/analytics/overview`)).data;
+        const a = (await get(`${BASE}/alerts?limit=1`)).data;
+
+        // alertCount in overview MUST equal alerts.summary.high
+        if (o.alertCount === a.summary.high) {
+            log('L2', 'RECONCILED: overview.alertCount === alerts.summary.high', 'PASS',
+                `${o.alertCount} === ${a.summary.high}`);
+        } else {
+            log('L2', 'alertCount MISMATCH: overview vs alerts.summary.high', 'FAIL',
+                `overview=${o.alertCount} vs summary.high=${a.summary.high}`);
+        }
+
+        // totalQueuedReviews MUST equal alerts.total
+        if (o.totalQueuedReviews === a.total) {
+            log('L2', 'RECONCILED: overview.totalQueuedReviews === alerts.total', 'PASS',
+                `${o.totalQueuedReviews} === ${a.total}`);
+        } else {
+            log('L2', 'totalQueuedReviews MISMATCH: overview vs alerts.total', 'FAIL',
+                `overview=${o.totalQueuedReviews} vs alerts.total=${a.total}`);
+        }
+
+        // summary.high + standard + monitoring = total
+        const sumAll = a.summary.high + a.summary.standard + a.summary.monitoring;
+        if (sumAll === a.total) {
+            log('L2', 'Alert summary breakdown sums to total', 'PASS',
+                `${a.summary.high}+${a.summary.standard}+${a.summary.monitoring}=${sumAll}`);
+        } else {
+            log('L2', 'Alert summary breakdown', 'FAIL',
+                `${sumAll} ≠ ${a.total}`);
+        }
+    } catch (e) { log('L2', 'alertCount reconciliation', 'FAIL', e.message); }
 
     // 2.2 Branch ranking — risk-first sort
     try {
