@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.env
+
+# Node.js
+node_modules/
+dist/
+
+# Angular
+frontend-web/.angular/
+frontend-web/dist/
+
+# Model files (too large for GitHub)
+backend-ai/model/*.safetensors
+backend-ai/model/*.bin
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
