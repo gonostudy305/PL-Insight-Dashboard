@@ -1,26 +1,40 @@
 """
 PLPreprocessor — Text preprocessing pipeline for PhoBERT inference.
-Implements the exact preprocessing from Chapter 4.3.2 of the research paper.
+Implements the preprocessing from Chapter 4.3.2 of the research paper.
+
+Note: Aspect detection is RULE-BASED TAGGING (keyword matching),
+not model-based aspect classification.
 """
 
 import re
 import emoji
 from underthesea import word_tokenize, text_normalize, sent_tokenize
 from deep_translator import GoogleTranslator
-from langdetect import detect
+from langdetect import detect, DetectorFactory
+
+# Make langdetect deterministic
+DetectorFactory.seed = 0
+
+# Max sentences to process per review (performance guard)
+MAX_SENTENCES = 10
+# Max characters per review input
+MAX_CHARS = 2000
+# Minimum text length for reliable language detection
+MIN_LANG_DETECT_LENGTH = 15
 
 
 class PLPreprocessor:
     """
     Preprocessing pipeline for Phuc Long customer reviews.
-    Handles: language detection, translation, Unicode normalization,
-    text cleaning, and Vietnamese word segmentation.
+    Handles: guarded language detection, Unicode normalization,
+    text cleaning, Vietnamese word segmentation, and rule-based aspect tagging.
     """
 
     def __init__(self):
         self.translator = GoogleTranslator(source='auto', target='vi')
 
-        # Aspect keyword dictionaries (from Chapter 3.2 of the paper)
+        # Rule-based aspect keyword dictionaries (from Chapter 3.2)
+        # This is keyword tagging, NOT model-based aspect classification.
         self.aspect_keywords = {
             "Dịch vụ": [
                 "nhân_viên", "phục_vụ", "thái_độ", "bảo_vệ", "khó_chịu",
@@ -43,22 +57,32 @@ class PLPreprocessor:
             ],
         }
 
-    def clean_text(self, text: str) -> str:
+    def clean_text(self, text: str) -> tuple[str, bool]:
         """
         Full text cleaning pipeline for a single string.
-        Steps: detect lang → translate → lowercase → normalize Unicode →
-               remove URLs/emails/emoji → remove special chars → collapse whitespace.
+        Returns: (cleaned_text, is_translated)
+
+        Steps: guarded lang detect → translate if non-VI → lowercase →
+               normalize Unicode → remove URLs/emails/emoji →
+               remove special chars → collapse whitespace.
         """
         if not isinstance(text, str) or text.strip() == "":
-            return ""
+            return "", False
 
-        # 1. Language detection + translation to Vietnamese
-        try:
-            detected_lang = detect(text)
-            if detected_lang != 'vi':
-                text = self.translator.translate(text)
-        except Exception:
-            pass  # Keep original text if detection/translation fails
+        is_translated = False
+
+        # 1. Guarded language detection + translation
+        # Only attempt translation if text is long enough for reliable detection
+        if len(text.strip()) >= MIN_LANG_DETECT_LENGTH:
+            try:
+                detected_lang = detect(text)
+                if detected_lang != 'vi':
+                    translated = self.translator.translate(text)
+                    if translated and len(translated.strip()) > 0:
+                        text = translated
+                        is_translated = True
+            except Exception:
+                pass  # Keep original text on any failure
 
         # 2. Lowercase
         text = text.lower()
@@ -81,55 +105,63 @@ class PLPreprocessor:
         # 7. Collapse whitespace
         text = re.sub(r'\s+', ' ', text).strip()
 
-        return text
+        return text, is_translated
 
-    def process_for_inference(self, raw_comment: str) -> list[dict]:
+    def process_for_inference(self, raw_comment: str) -> dict:
         """
         Full preprocessing pipeline for PhoBERT inference.
-        1. Split comment into sentences
-        2. Clean each sentence
-        3. Word segmentation (critical for PhoBERT)
-        4. Detect aspect keywords
+        1. Truncate to MAX_CHARS
+        2. Split comment into sentences (capped at MAX_SENTENCES)
+        3. Clean each sentence
+        4. Word segmentation (critical for PhoBERT)
+        5. Rule-based aspect tagging
 
-        Returns: list of dicts with original_sentence, processed_sentence, aspects
+        Returns: dict with sentences list and isTranslated flag
         """
         if not raw_comment or not isinstance(raw_comment, str):
-            return []
+            return {"sentences": [], "isTranslated": False}
 
-        # Step A: Sentence tokenization
-        raw_sentences = sent_tokenize(raw_comment)
+        # Truncate overly long input
+        truncated = raw_comment[:MAX_CHARS]
 
+        # Step A: Sentence tokenization (capped)
+        raw_sentences = sent_tokenize(truncated)[:MAX_SENTENCES]
+
+        any_translated = False
         processed_data = []
+
         for sent in raw_sentences:
-            # Step B: Clean
-            cleaned = self.clean_text(sent)
+            # Step B: Clean (now returns translation flag)
+            cleaned, was_translated = self.clean_text(sent)
+            if was_translated:
+                any_translated = True
             if not cleaned:
                 continue
 
             # Step C: Word segmentation → "nhân viên" → "nhân_viên"
             segmented = word_tokenize(cleaned, format="text")
 
-            # Step D: Detect aspects
-            aspects = self._detect_aspects(segmented)
+            # Step D: Rule-based aspect tagging
+            aspect_hints = self._detect_aspect_hints(segmented)
 
             processed_data.append({
-                "original_sentence": sent.strip(),
-                "processed_sentence": segmented,
-                "detected_aspects": aspects
+                "originalSentence": sent.strip(),
+                "processedSentence": segmented,
+                "aspectHints": aspect_hints,
             })
 
-        return processed_data
+        return {"sentences": processed_data, "isTranslated": any_translated}
 
-    def _detect_aspects(self, segmented_text: str) -> list[str]:
-        """Detect operational aspects from segmented text using keyword matching."""
-        found_aspects = []
+    def _detect_aspect_hints(self, segmented_text: str) -> list[str]:
+        """Rule-based aspect tagging from segmented text using keyword matching."""
+        found = []
         text_lower = segmented_text.lower()
         for aspect_name, keywords in self.aspect_keywords.items():
             for kw in keywords:
                 if kw in text_lower:
-                    found_aspects.append(aspect_name)
+                    found.append(aspect_name)
                     break
-        return found_aspects
+        return found
 
     def extract_keywords(self, segmented_text: str) -> list[str]:
         """Extract meaningful keywords from segmented text."""

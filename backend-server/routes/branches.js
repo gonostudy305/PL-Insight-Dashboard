@@ -1,8 +1,16 @@
 /**
  * /api/branches — Branch data + KPI aggregation
+ * Canonical branch ID: placeId (locked §5)
+ * All aggregation groups by placeId, NOT by branch_address
+ * Default sort: healthScore ascending (risk-first view)
+ * JSON contract matches locked §4
  */
 const { Router } = require('express');
 const router = Router();
+
+function errorResponse(res, status, code, message, details = null) {
+    return res.status(status).json({ error: { code, message, details } });
+}
 
 // GET /api/branches — All branches with aggregated KPIs
 router.get('/', async (req, res) => {
@@ -12,87 +20,123 @@ router.get('/', async (req, res) => {
         const branches = await collection.aggregate([
             {
                 $group: {
-                    _id: '$branch_address',
-                    avg_stars: { $avg: '$stars' },
-                    total_reviews: { $sum: 1 },
-                    negative_count: {
+                    _id: '$placeId', // group by placeId, not branch_address
+                    branchAddress: { $first: '$branch_address' }, // display only
+                    district: { $first: '$district' },
+                    avgStars: { $avg: '$stars' },
+                    totalReviews: { $sum: 1 },
+                    negativeCount: {
                         $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] }
                     },
-                    positive_count: {
+                    positiveCount: {
                         $sum: { $cond: [{ $eq: ['$label', 1] }, 1, 0] }
                     },
-                    responded_count: {
+                    respondedCount: {
                         $sum: { $cond: [{ $eq: ['$is_responded', 1] }, 1, 0] }
                     },
-                    district: { $first: '$district' },
-                    placeId: { $first: '$placeId' },
                 }
             },
             {
                 $addFields: {
-                    negative_rate: {
+                    negativeRate: {
                         $cond: [
-                            { $eq: ['$total_reviews', 0] }, 0,
-                            { $divide: ['$negative_count', '$total_reviews'] }
+                            { $eq: ['$totalReviews', 0] }, 0,
+                            { $round: [{ $multiply: [{ $divide: ['$negativeCount', '$totalReviews'] }, 100] }, 2] }
                         ]
                     },
-                    response_rate: {
+                    responseRate: {
                         $cond: [
-                            { $eq: ['$total_reviews', 0] }, 0,
-                            { $divide: ['$responded_count', '$total_reviews'] }
+                            { $eq: ['$totalReviews', 0] }, 0,
+                            { $round: [{ $multiply: [{ $divide: ['$respondedCount', '$totalReviews'] }, 100] }, 2] }
                         ]
                     },
                 }
             },
             {
                 $addFields: {
-                    health_score: {
-                        $multiply: [
-                            '$avg_stars',
-                            { $subtract: [1, '$negative_rate'] },
-                            { $add: [1, '$response_rate'] },
+                    healthScore: {
+                        $round: [
+                            {
+                                $multiply: [
+                                    '$avgStars',
+                                    { $subtract: [1, { $divide: ['$negativeCount', { $max: ['$totalReviews', 1] }] }] },
+                                    { $add: [1, { $divide: ['$respondedCount', { $max: ['$totalReviews', 1] }] }] },
+                                ]
+                            },
+                            2
                         ]
                     }
                 }
             },
-            { $sort: { health_score: -1 } },
+            { $sort: { healthScore: 1 } }, // ascending = risk-first
         ]).toArray();
 
-        res.json({ data: branches, total: branches.length });
+        // Map to locked contract shape
+        const data = branches.map(b => ({
+            placeId: b._id,
+            branchAddress: b.branchAddress,
+            district: b.district,
+            avgStars: Math.round(b.avgStars * 100) / 100,
+            totalReviews: b.totalReviews,
+            negativeRate: b.negativeRate,
+            responseRate: b.responseRate,
+            healthScore: b.healthScore,
+        }));
+
+        res.json({ data, total: data.length });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        errorResponse(res, 500, 'ERR_BRANCHES_LIST', err.message);
     }
 });
 
-// GET /api/branches/:id — Single branch detail
-router.get('/:id', async (req, res) => {
+// GET /api/branches/:placeId — Single branch detail
+router.get('/:placeId', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
-        const branchName = decodeURIComponent(req.params.id);
+        const placeId = req.params.placeId;
 
         const [summary] = await collection.aggregate([
-            { $match: { branch_address: branchName } },
+            { $match: { placeId } },
             {
                 $group: {
-                    _id: '$branch_address',
-                    avg_stars: { $avg: '$stars' },
-                    total_reviews: { $sum: 1 },
-                    negative_count: { $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] } },
-                    responded_count: { $sum: { $cond: [{ $eq: ['$is_responded', 1] }, 1, 0] } },
+                    _id: '$placeId',
+                    branchAddress: { $first: '$branch_address' },
                     district: { $first: '$district' },
-                    star_1: { $sum: { $cond: [{ $eq: ['$stars', 1] }, 1, 0] } },
-                    star_2: { $sum: { $cond: [{ $eq: ['$stars', 2] }, 1, 0] } },
-                    star_3: { $sum: { $cond: [{ $eq: ['$stars', 3] }, 1, 0] } },
-                    star_4: { $sum: { $cond: [{ $eq: ['$stars', 4] }, 1, 0] } },
-                    star_5: { $sum: { $cond: [{ $eq: ['$stars', 5] }, 1, 0] } },
+                    avgStars: { $avg: '$stars' },
+                    totalReviews: { $sum: 1 },
+                    negativeCount: { $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] } },
+                    respondedCount: { $sum: { $cond: [{ $eq: ['$is_responded', 1] }, 1, 0] } },
+                    star1: { $sum: { $cond: [{ $eq: ['$stars', 1] }, 1, 0] } },
+                    star2: { $sum: { $cond: [{ $eq: ['$stars', 2] }, 1, 0] } },
+                    star3: { $sum: { $cond: [{ $eq: ['$stars', 3] }, 1, 0] } },
+                    star4: { $sum: { $cond: [{ $eq: ['$stars', 4] }, 1, 0] } },
+                    star5: { $sum: { $cond: [{ $eq: ['$stars', 5] }, 1, 0] } },
                 }
             }
         ]).toArray();
 
-        if (!summary) return res.status(404).json({ error: 'Branch not found' });
-        res.json(summary);
+        if (!summary) {
+            return errorResponse(res, 404, 'ERR_BRANCH_NOT_FOUND', 'Branch not found');
+        }
+
+        res.json({
+            placeId: summary._id,
+            branchAddress: summary.branchAddress,
+            district: summary.district,
+            avgStars: Math.round(summary.avgStars * 100) / 100,
+            totalReviews: summary.totalReviews,
+            negativeCount: summary.negativeCount,
+            respondedCount: summary.respondedCount,
+            starDistribution: {
+                1: summary.star1,
+                2: summary.star2,
+                3: summary.star3,
+                4: summary.star4,
+                5: summary.star5,
+            },
+        });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        errorResponse(res, 500, 'ERR_BRANCH_DETAIL', err.message);
     }
 });
 
