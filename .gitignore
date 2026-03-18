@@ -25,3 +25,6 @@ desktop.ini
 # IDE
 .vscode/
 .idea/
+
+# Agent
+.agent/

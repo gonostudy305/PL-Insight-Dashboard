@@ -38,6 +38,10 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/branches/${encodeURIComponent(name)}`);
     }
 
+    getBranchDetail(placeId: string): Observable<any> {
+        return this.http.get(`${this.baseUrl}/branches/${encodeURIComponent(placeId)}`);
+    }
+
     // ── Reviews ──
     getReviews(params: any = {}): Observable<any> {
         let httpParams = new HttpParams();

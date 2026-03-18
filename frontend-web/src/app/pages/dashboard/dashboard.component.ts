@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { Chart, registerables } from 'chart.js';
 
@@ -8,7 +9,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="dashboard">
       <h2 class="page-title">Tổng quan hệ thống</h2>
@@ -106,12 +107,12 @@ Chart.register(...registerables);
         <h3 class="section-title">Xếp hạng chi nhánh (Health Score — thấp → cao)</h3>
         <div class="branch-list">
           @for (branch of branches?.data?.slice(0, 10); track branch.placeId; let i = $index) {
-            <div class="branch-item">
+            <a class="branch-item" [routerLink]="['/branches', branch.placeId]">
               <span class="branch-rank" [class.risk-rank]="i < 3">{{ i + 1 }}</span>
               <span class="branch-name">{{ branch.branchAddress }}</span>
               <span class="branch-score" [class.low-score]="branch.healthScore < 2">{{ branch.healthScore }}</span>
               <span class="branch-stars">⭐ {{ branch.avgStars }}</span>
-            </div>
+            </a>
           }
         </div>
       </div>
@@ -251,9 +252,10 @@ Chart.register(...registerables);
       padding: 14px 20px;
       border-bottom: 1px solid rgba(255,255,255,0.03);
       transition: background 0.15s;
+      text-decoration: none; cursor: pointer;
     }
 
-    .branch-item:hover { background: rgba(255,255,255,0.02); }
+    .branch-item:hover { background: rgba(255,255,255,0.04); }
     .branch-item:last-child { border-bottom: none; }
 
     .branch-rank {
