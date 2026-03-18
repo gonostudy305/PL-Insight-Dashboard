@@ -26,14 +26,14 @@ router.get('/', async (req, res) => {
             text: { $ne: 'Không có bình luận', $exists: true },
         };
 
-        const reviews = await collection
+        // Fetch ALL negative reviews with text for accurate summary counts
+        const allReviews = await collection
             .find(filter)
             .sort({ publishedAtDate: -1 })
-            .limit(parseInt(limit) * 3) // fetch extra for priority filtering
             .toArray();
 
         // Assign priority levels based on risk assessment (Chapter 6.1.1)
-        const alerts = reviews.map(review => {
+        const alerts = allReviews.map(review => {
             const isPeakHour = PEAK_HOURS.includes(review.hour);
             const isLongText = ['Long', 'Very long'].includes(review.text_length_group);
             const isWeekend = review.is_weekend === 1;
@@ -88,6 +88,7 @@ router.get('/', async (req, res) => {
             return new Date(b.publishedAtDate) - new Date(a.publishedAtDate);
         });
 
+        // Summary counts from FULL collection (not paginated subset)
         const summary = {
             high: alerts.filter(a => a.priorityLevel === 1).length,
             standard: alerts.filter(a => a.priorityLevel === 2).length,

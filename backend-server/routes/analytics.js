@@ -39,15 +39,23 @@ router.get('/overview', async (req, res) => {
             * (1 + stats.respondedCount / stats.totalReviews) * 100
         ) / 100;
 
-        // Count priority-1 alerts for alertCount
+        // alertCount = exactly priority-1 reviews (locked definition)
+        // Priority-1: label=0, has text content, isLongText AND (isPeakHour OR isWeekend)
+        const PEAK_HOURS = [7, 8, 9, 18, 19, 20, 21];
         const alertCount = await collection.countDocuments({
             label: 0,
             text: { $ne: 'Không có bình luận', $exists: true },
             text_length_group: { $in: ['Long', 'Very long'] },
             $or: [
-                { hour: { $in: [7, 8, 9, 18, 19, 20, 21] } },
+                { hour: { $in: PEAK_HOURS } },
                 { is_weekend: 1 },
             ],
+        });
+
+        // totalQueuedReviews = all negative reviews with text (full queue size)
+        const totalQueuedReviews = await collection.countDocuments({
+            label: 0,
+            text: { $ne: 'Không có bình luận', $exists: true },
         });
 
         res.json({
@@ -59,7 +67,8 @@ router.get('/overview', async (req, res) => {
             healthScore,
             positiveCount: stats.positiveCount,
             negativeCount: stats.negativeCount,
-            alertCount,
+            alertCount,              // priority-1 only
+            totalQueuedReviews,      // all negative reviews in queue
         });
     } catch (err) {
         errorResponse(res, 500, 'ERR_OVERVIEW', err.message);
