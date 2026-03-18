@@ -38,6 +38,7 @@ const reviewsRouter = require('./routes/reviews');
 const branchesRouter = require('./routes/branches');
 const analyticsRouter = require('./routes/analytics');
 const alertsRouter = require('./routes/alerts');
+const liveMonitorRouter = require('./routes/live-monitor');
 
 // Pass db to routes via app.locals
 app.use((req, res, next) => {
@@ -50,6 +51,7 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/branches', branchesRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/alerts', alertsRouter);
+app.use('/api/live-monitor', liveMonitorRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
