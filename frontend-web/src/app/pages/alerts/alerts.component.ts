@@ -8,859 +8,499 @@ import { ApiService } from '../../services/api.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="alerts-page">
-      <div class="header-row">
-        <div>
-          <h2 class="page-title">Smart Alert System</h2>
-          <p class="page-subtitle">Cảnh báo thông minh & quản lý vòng đời xử lý</p>
+    <div class="kv-wrapper">
+      <!-- Headers -->
+      <div class="kv-header-row">
+        <div class="kv-title-area">
+          <h2 class="page-title">Cảnh báo rủi ro</h2>
         </div>
-        <div class="header-actions">
-          <div class="telegram-status" [class.connected]="telegramConnected">
-            <span class="tg-dot"></span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
-            {{ telegramConnected ? 'Telegram Connected' : 'Telegram N/A' }}
-            <button class="tg-test-btn" *ngIf="telegramConnected" (click)="testTelegram()" [disabled]="testingTelegram" title="Gửi thông báo test">
-              {{ testingTelegram ? '...' : 'Test' }}
-            </button>
+        <div class="kv-top-actions">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            <input type="text" placeholder="Theo mã, chi nhánh, nội dung">
           </div>
-          <button class="scan-btn" (click)="runTriggerScan()" [disabled]="scanning">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-            {{ scanning ? 'Scanning...' : 'Trigger Scan' }}
+          <button class="btn-primary" (click)="runTriggerScan()" [disabled]="scanning">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            {{ scanning ? 'Đang chạy quét...' : 'Kích hoạt Quét ▾' }}
           </button>
-        </div>
-      </div>
-
-      <!-- Result Banners -->
-      <div class="scan-banner" *ngIf="scanResult">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span>Tạo mới: <strong>{{ scanResult.created }}</strong></span>
-        <span>Bỏ qua (cooldown): {{ scanResult.skipped }}</span>
-        <span *ngIf="scanResult.alerts?.length > 0" class="notif-sent">📩 Đã gửi {{ scanResult.alerts.length }} alert qua Telegram</span>
-        <button class="close-banner" (click)="scanResult = null">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-        </button>
-      </div>
-      <div class="scan-banner tg-banner" *ngIf="telegramTestResult">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
-        <span>{{ telegramTestResult.success ? '✅ Test alert gửi thành công!' : '❌ Gửi thất bại: ' + (telegramTestResult.error || 'Unknown') }}</span>
-        <button class="close-banner" (click)="telegramTestResult = null">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-        </button>
-      </div>
-
-      <!-- Tabs -->
-      <div class="tabs">
-        <button class="tab" [class.active]="activeTab === 'queue'" (click)="activeTab = 'queue'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
-          Hàng đợi ưu tiên
-        </button>
-        <button class="tab" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'; loadHistory()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-          Lịch sử cảnh báo
-          <span class="tab-badge" *ngIf="statusCounts.new > 0">{{ statusCounts.new }}</span>
-        </button>
-      </div>
-
-      <!-- Tab: Queue -->
-      <div *ngIf="activeTab === 'queue'" class="manager-dashboard">
-        <div class="dashboard-header">
-          <h1>CẢNH BÁO HÔM NAY ({{alerts.length}})</h1>
-        </div>
-        
-        <div class="alert-table" *ngIf="alerts.length > 0; else noQueue">
-          <div class="table-header">
-            <span>Cửa hàng / Vị trí</span>
-            <span>Mức độ / Đánh giá</span>
-            <span>Nội dung phản ánh</span>
-            <span>Thao tác xử lý</span>
+          <button class="btn-outline">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Xuất file
+          </button>
+          <div class="settings-icons">
+            <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+            <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
           </div>
+        </div>
+      </div>
+
+      <div class="kv-body-row">
+        <!-- Sidebar Filters -->
+        <div class="kv-sidebar">
           
-          @for (alert of alerts; track alert.reviewId; let i = $index) {
-            <div class="table-row" [class.critical]="alert.priorityLevel === 1" [class.warning]="alert.priorityLevel === 2" [class.info]="alert.priorityLevel === 3">
-              <span class="branch-name">{{ alert.branchAddress }}</span>
-              <span class="trend" [class.up]="alert.priorityLevel === 1" [class.down]="alert.priorityLevel === 2">
-                {{ alert.priorityLabel }} (★ {{ alert.stars }})
-              </span>
-              <span class="reason">
-                <div class="alert-msg">{{ alert.text }}</div>
-                <div class="risk-tags">
-                  @for (factor of alert.riskFactors; track factor) {
-                    <span class="risk-badge">#{{ factor }}</span>
-                  }
-                </div>
-              </span>
-              <span class="actions-cell">
-                  <button class="btn-pro primary" (click)="openSuggestion(alert)">Gợi ý</button>
-                  <button class="btn-pro outline" (click)="updateStatus(alert.alertId, 'acknowledged')">Xác nhận</button>
-              </span>
+          <div class="filter-box">
+            <div class="filter-title">
+              Chế độ xem <a class="filter-link">Tạo mới</a>
             </div>
-          }
-        </div>
-        <ng-template #noQueue>
-          <div class="empty-state-pro" style="margin-top: 20px;">
-            <div class="empty-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="filter-content">
+              <label class="radio-label">
+                <input type="radio" name="tabMode" [checked]="activeTab === 'queue'" (change)="activeTab = 'queue'"> 
+                Hàng đợi ưu tiên ({{alerts.length}})
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="tabMode" [checked]="activeTab === 'history'" (change)="activeTab = 'history'; loadHistory()"> 
+                Lịch sử cảnh báo <span class="badge" *ngIf="statusCounts.new > 0">{{statusCounts.new}}</span>
+              </label>
             </div>
-            <div class="empty-text">Hệ thống đang ổn định</div>
-            <div class="empty-subtext">Không có cảnh báo rủi ro cao nào cần xử lý lúc này.</div>
           </div>
-        </ng-template>
-      </div>
 
-      <!-- Tab: History -->
-      <div *ngIf="activeTab === 'history'">
-        <div class="filter-row">
-          <select [(ngModel)]="historyFilter" (change)="loadHistory()">
-            <option value="">Tất cả trạng thái</option>
-            <option value="new">Mới</option>
-            <option value="acknowledged">Đã xác nhận</option>
-            <option value="resolved">Đã xử lý</option>
-          </select>
-          <div class="status-summary">
-            <span class="mini-badge new-bg">{{ statusCounts.new }} mới</span>
-            <span class="mini-badge ack-bg">{{ statusCounts.acknowledged }} xác nhận</span>
-            <span class="mini-badge res-bg">{{ statusCounts.resolved }} hoàn tất</span>
+          <div class="filter-box" *ngIf="activeTab === 'history'">
+            <div class="filter-title">
+              Trạng thái (Lịch sử)
+            </div>
+            <div class="filter-search">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+              <input type="text" placeholder="Tìm kiếm trạng thái">
+            </div>
+            <div class="filter-content">
+              <label class="radio-label"><input type="radio" name="st" [checked]="historyFilter === ''" (change)="historyFilter = ''; loadHistory()"> Tất cả trạng thái</label>
+              <label class="radio-label"><input type="radio" name="st" [checked]="historyFilter === 'new'" (change)="historyFilter = 'new'; loadHistory()"> Mở mới</label>
+              <label class="radio-label"><input type="radio" name="st" [checked]="historyFilter === 'acknowledged'" (change)="historyFilter = 'acknowledged'; loadHistory()"> Đã nhận</label>
+              <label class="radio-label"><input type="radio" name="st" [checked]="historyFilter === 'resolved'" (change)="historyFilter = 'resolved'; loadHistory()"> Hoàn tất</label>
+            </div>
           </div>
-        </div>
 
-        <div class="history-list" *ngIf="historyAlerts.length > 0; else noHistory">
-          @for (h of historyAlerts; track h.alertId) {
-            <div class="history-card" [class]="'status-' + h.status">
-              <div class="history-left">
-                <span class="status-dot"
-                  [class.dot-new]="h.status === 'new'"
-                  [class.dot-ack]="h.status === 'acknowledged'"
-                  [class.dot-res]="h.status === 'resolved'">
-                </span>
-                <div>
-                  <div class="history-branch">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    {{ h.branchAddress }}
-                  </div>
-                  <div class="history-rule">{{ h.triggerRule }} — {{ h.triggerCount }} reviews</div>
-                  <div class="history-time">{{ formatTime(h.createdAt) }}</div>
-                  <div class="history-timeline" *ngIf="h.acknowledgedAt || h.resolvedAt">
-                    <span *ngIf="h.acknowledgedAt">Xác nhận: {{ formatTime(h.acknowledgedAt) }}</span>
-                    <span *ngIf="h.resolvedAt">Hoàn tất: {{ formatTime(h.resolvedAt) }}</span>
-                  </div>
-                </div>
+          <div class="filter-box telegram-box">
+            <div class="filter-title">Trạng thái Telegram</div>
+            <div class="filter-content">
+              <div class="tg-status" [class.connected]="telegramConnected">
+                <span class="tg-dot"></span> {{ telegramConnected ? 'Đã kết nối' : 'Đang ngắt kết nối' }}
               </div>
-              <div class="history-actions">
-                <button class="action-btn ack-btn"
-                  *ngIf="h.status === 'new'"
-                  (click)="updateStatus(h.alertId, 'acknowledged')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                  Xác nhận
-                </button>
-                <button class="action-btn resolve-btn"
-                  *ngIf="h.status === 'acknowledged'"
-                  (click)="updateStatus(h.alertId, 'resolved')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  Hoàn tất
-                </button>
-                <span class="status-label" *ngIf="h.status === 'resolved'">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                  Đã xử lý
-                </span>
-              </div>
-            </div>
-          }
-        </div>
-        <ng-template #noHistory>
-          <div class="empty-state-pro">
-            <div class="empty-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
-            </div>
-            <div class="empty-text">Chưa có dữ liệu lịch sử</div>
-            <div class="empty-subtext">Bấm <strong>Trigger Scan</strong> để cập nhật dữ liệu từ hệ thống.</div>
-          </div>
-        </ng-template>
-      </div>
-
-      <!-- Suggestion Modal -->
-      <div class="modal-backdrop" *ngIf="suggestionModal" (click)="suggestionModal = null"></div>
-      <div class="suggestion-modal" *ngIf="suggestionModal">
-        <div class="modal-header">
-          <h3>Gợi ý phản hồi khách hàng</h3>
-          <button class="close-modal" (click)="suggestionModal = null">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="modal-review">
-          <div class="review-label">Nội dung review:</div>
-          <p class="review-text">{{ suggestionModal.reviewText }}</p>
-          <div class="review-cats">
-            <span class="cat-tag" *ngFor="let c of suggestionModal.categories">{{ c }}</span>
-          </div>
-        </div>
-        <div class="suggestion-loading" *ngIf="suggestionLoading">Đang tạo gợi ý...</div>
-        <div class="suggestion-list" *ngIf="!suggestionLoading">
-          <div class="suggestion-item" *ngFor="let s of suggestionModal.suggestions; let i = index">
-            <div class="suggestion-header">
-              <span class="suggestion-num">#{{ i + 1 }}</span>
-              <span class="suggestion-cat">{{ s.category }}</span>
-              <button class="copy-btn" (click)="copySuggestion(s.text, i)">
-                {{ copiedIndex === i ? '✓ Đã copy' : 'Copy' }}
+              <button class="btn-outline btn-block mt-2" *ngIf="telegramConnected" (click)="testTelegram()" [disabled]="testingTelegram">
+                {{ testingTelegram ? 'Đang gửi...' : 'Test Gửi Cảnh Báo' }}
               </button>
             </div>
-            <p class="suggestion-text">{{ s.text }}</p>
+          </div>
+
+        </div>
+
+        <!-- Data Table -->
+        <div class="kv-table-area">
+          
+          <div class="table-banner" *ngIf="scanResult">
+            ✅ Trình quét hoàn tất: Tạo mới {{scanResult.created}} | Bỏ qua {{scanResult.skipped}} | Gửi TL: {{scanResult.alerts?.length || 0}}
+            <button class="close-btn" (click)="scanResult = null">×</button>
+          </div>
+          <div class="table-banner tg-banner" *ngIf="telegramTestResult">
+            {{ telegramTestResult.success ? '✅ Gửi Telegram thành công!' : '❌ Gửi Telegram thất bại' }}
+            <button class="close-btn" (click)="telegramTestResult = null">×</button>
+          </div>
+
+          <table class="kv-table">
+            <thead>
+              <tr>
+                <th class="col-chk"><input type="checkbox"></th>
+                <th class="col-star"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></th>
+                <th class="col-id">Mã Cảnh báo</th>
+                <th class="col-main">Nội dung rủi ro</th>
+                <th class="col-branch">Chi nhánh</th>
+                <th class="col-risk">Mức độ rủi ro</th>
+                <th class="col-status">Trạng thái</th>
+                <th class="col-time">T/g phát sinh</th>
+                <th class="col-action">Thao tác</th>
+              </tr>
+            </thead>
+            
+            <!-- QUEUE ROWS -->
+            <tbody *ngIf="activeTab === 'queue'">
+              <tr *ngFor="let alert of alerts; let i = index">
+                <td class="col-chk"><input type="checkbox"></td>
+                <td class="col-star"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></td>
+                <td class="col-id"><span class="link">AL-Q{{alert.reviewId?.substring(0,4) || i}}</span></td>
+                <td class="col-main">
+                  <div class="tbl-text">{{ alert.text }}</div>
+                  <div class="tbl-tags">
+                    <span class="badg risk"*ngFor="let risk of alert.riskFactors">#{{risk}}</span>
+                  </div>
+                </td>
+                <td class="col-branch">{{ alert.branchAddress }}</td>
+                <td class="col-risk"><span class="dot-label" [class]="'r-'+alert.priorityLevel"></span> {{ alert.priorityLabel }}</td>
+                <td class="col-status"><span class="st-badge new">Hàng đợi mới</span></td>
+                <td class="col-time">{{ formatTime(alert.createdAt) }}</td>
+                <td class="col-action">
+                  <button class="tbl-btn" title="Gợi ý" (click)="openSuggestion(alert)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+                  <button class="tbl-btn" title="Xác nhận" (click)="updateStatus(alert.alertId, 'acknowledged')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>
+                </td>
+              </tr>
+              <tr *ngIf="alerts.length === 0" class="empty-tr">
+                <td colspan="9">Không có cảnh báo mới trong hàng đợi do hệ thống ổn định.</td>
+              </tr>
+            </tbody>
+
+            <!-- HISTORY ROWS -->
+            <tbody *ngIf="activeTab === 'history'">
+              <tr *ngFor="let h of historyAlerts">
+                <td class="col-chk"><input type="checkbox"></td>
+                <td class="col-star"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></td>
+                <td class="col-id"><span class="link">AL-H{{h.alertId?.substring(0,4)}}</span></td>
+                <td class="col-main">
+                   <div class="tbl-text">{{ h.triggerRule }}</div>
+                   <div class="tbl-subtext">Đã phát hiện trong chu kỳ kiểm tra</div>
+                </td>
+                <td class="col-branch">{{ h.branchAddress }}</td>
+                <td class="col-risk"><span class="dot-label r-3"></span> Cảnh báo hệ thống</td>
+                <td class="col-status">
+                  <span class="st-badge" [class.new]="h.status==='new'" [class.ack]="h.status==='acknowledged'" [class.res]="h.status==='resolved'">
+                    {{ h.status === 'new' ? 'Mở mới' : (h.status === 'acknowledged' ? 'Đã nhận' : 'Hoàn tất') }}
+                  </span>
+                </td>
+                <td class="col-time">{{ formatTime(h.createdAt) }}</td>
+                <td class="col-action">
+                  <button class="tbl-btn" *ngIf="h.status === 'new'" title="Nhận" (click)="updateStatus(h.alertId, 'acknowledged')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  <button class="tbl-btn green" *ngIf="h.status === 'acknowledged'" title="Hoàn tất" (click)="updateStatus(h.alertId, 'resolved')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></button>
+                </td>
+              </tr>
+              <tr *ngIf="historyAlerts.length === 0" class="empty-tr">
+                <td colspan="9">Chưa có lịch sử cảnh báo theo bộ lọc này.</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="table-pager">
+             <div class="pager-info">Hiển thị 1 - {{ activeTab === 'queue' ? alerts.length : historyAlerts.length }} trên tổng số</div>
+             <div class="pager-btns">
+                <button disabled>&lt;</button>
+                <button class="active">1</button>
+                <button disabled>&gt;</button>
+             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Suggestion Modal (Retained Original Logics) -->
+    <div class="modal-backdrop" *ngIf="suggestionModal" (click)="suggestionModal = null"></div>
+    <div class="suggestion-modal" *ngIf="suggestionModal">
+       <div class="modal-header">
+         <h3>Gợi ý phản hồi khách hàng</h3>
+         <button class="close-modal" (click)="suggestionModal = null"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
+       </div>
+       <div class="modal-review">
+         <div class="review-label">Nội dung review:</div>
+         <p class="review-text">{{ suggestionModal.reviewText }}</p>
+         <div class="review-cats">
+           <span class="cat-tag" *ngFor="let c of suggestionModal.categories">{{ c }}</span>
+         </div>
+       </div>
+       <div class="suggestion-loading" *ngIf="suggestionLoading">Đang tạo gợi ý xử lý...</div>
+       <div class="suggestion-list" *ngIf="!suggestionLoading">
+         <div class="suggestion-item" *ngFor="let s of suggestionModal.suggestions; let i = index">
+           <div class="suggestion-header">
+             <span class="suggestion-num">#{{ i + 1 }}</span>
+             <span class="suggestion-cat">{{ s.category }}</span>
+             <button class="copy-btn" (click)="copySuggestion(s.text, i)">{{ copiedIndex === i ? '✓ Đã copy' : 'Copy' }}</button>
+           </div>
+           <p class="suggestion-text">{{ s.text }}</p>
+         </div>
+       </div>
+    </div>
   `,
   styles: [`
-    .alerts-page {
-      max-width: 1000px;
-      animation: fadeInUp 0.4s ease-out;
+    /* Layout Variables KV */
+    :root {
+      --kv-blue: #0070f4;
+      --kv-border: #e0e4eb;
+      --kv-bg: #f5f6f8;
+      --kv-txt: #333;
+      --kv-txt-muted: #888;
     }
 
-    .header-row {
+    .kv-wrapper {
+      background: #f4f5f7;
+      min-height: calc(100vh - 52px);
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: var(--space-6);
+      flex-direction: column;
+      font-family: Arial, sans-serif; /* Clean font */
     }
 
-    .page-title {
-      font-size: var(--font-size-2xl);
-      font-weight: 800;
-      color: var(--color-text);
-      letter-spacing: -0.03em;
-    }
-
-    .page-subtitle {
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-base);
-      margin-top: var(--space-1);
-    }
-
-    .scan-btn {
+    /* TOP HEADER ROW */
+    .kv-header-row {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border-radius: var(--radius-md);
-      border: none;
-      background: var(--color-primary);
-      color: white;
-      font-size: var(--font-size-base);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--transition-base);
-    }
-
-    .scan-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(12, 113, 61, 0.3);
-    }
-
-    .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
-    }
-
-    .telegram-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: var(--radius-md);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-text-muted);
-      background: var(--color-bg);
-      border: 1px solid var(--color-border);
-    }
-
-    .telegram-status.connected {
-      color: #059669;
-      background: #ecfdf5;
-      border-color: rgba(5, 150, 105, 0.2);
-    }
-
-    .tg-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #d1d5db;
-    }
-
-    .telegram-status.connected .tg-dot {
-      background: #10b981;
-      animation: pulse 2s infinite;
-    }
-
-    .tg-test-btn {
-      margin-left: 4px;
-      padding: 2px 10px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(5, 150, 105, 0.3);
-      background: white;
-      color: #059669;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-    }
-
-    .tg-test-btn:hover:not(:disabled) { background: #ecfdf5; }
-    .tg-test-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .tg-banner {
-      background: #eff6ff !important;
-      border-color: rgba(59, 130, 246, 0.2) !important;
-    }
-
-    .notif-sent {
-      color: var(--color-primary);
-      font-weight: 600;
-    }
-
-    .scan-banner {
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
-      padding: var(--space-3) var(--space-5);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--space-4);
-      background: var(--color-success-bg);
-      border: 1px solid rgba(5, 150, 105, 0.2);
-      color: var(--color-text);
-      font-size: var(--font-size-sm);
-    }
-
-    .close-banner {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: var(--color-text-muted);
-      cursor: pointer;
-      display: flex;
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: var(--space-6);
-      border-bottom: 2px solid var(--color-border);
-    }
-
-    .tab {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: var(--space-3) var(--space-5);
-      border: none;
       background: transparent;
-      color: var(--color-text-muted);
-      font-size: var(--font-size-base);
-      font-weight: 500;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: all var(--transition-base);
+      padding: 12px 16px;
+      gap: 16px;
     }
 
-    .tab:hover { color: var(--color-text); }
-
-    .tab.active {
-      color: var(--color-primary);
-      border-bottom-color: var(--color-primary);
-      font-weight: 600;
+    .kv-title-area {
+      width: 220px; /* Match sidebar width */
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
     }
-
-    .tab-badge {
-      background: var(--color-danger);
-      color: white;
-      font-size: 11px;
+    .page-title {
+      font-size: 1.2rem;
       font-weight: 700;
-      padding: 2px 7px;
-      border-radius: var(--radius-full);
-      min-width: 18px;
-      text-align: center;
+      color: #333;
+      margin: 0;
     }
 
-    /* Queue Tab */
-    .alert-summary {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-4);
-      margin-bottom: var(--space-6);
+    .kv-top-actions {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .summary-item {
-      text-align: center;
-      padding: var(--space-5);
-      border-radius: var(--radius-lg);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
+    .search-wrap {
+      flex: 1;
+      max-width: 400px;
       position: relative;
-      overflow: hidden;
-    }
-
-    .summary-item::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-    }
-
-    .summary-item.high::after { background: var(--color-danger); }
-    .summary-item.standard::after { background: var(--color-warning); }
-    .summary-item.monitoring::after { background: var(--color-info); }
-
-    .summary-count {
-      font-size: 30px;
-      font-weight: 800;
-      display: block;
-      color: var(--color-text);
-    }
-
-    .summary-label {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .alert-list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-    }
-
-    .alert-card {
-      display: flex;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      transition: all var(--transition-base);
-    }
-
-    .alert-card:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateX(2px);
-    }
-
-    .alert-priority-bar { width: 4px; flex-shrink: 0; }
-    .priority-1 .alert-priority-bar { background: var(--color-danger); }
-    .priority-2 .alert-priority-bar { background: var(--color-warning); }
-    .priority-3 .alert-priority-bar { background: var(--color-info); }
-
-    .alert-body { padding: var(--space-4) var(--space-5); flex: 1; }
-
-    .alert-header {
+      background: white;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
       display: flex;
       align-items: center;
-      gap: var(--space-3);
-      margin-bottom: var(--space-2);
-      flex-wrap: wrap;
+      padding: 0 10px;
     }
-
-    .priority-badge {
-      padding: 3px 10px;
-      border-radius: var(--radius-full);
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .priority-1 .priority-badge { background: var(--color-danger-bg); color: var(--color-danger); }
-    .priority-2 .priority-badge { background: var(--color-warning-bg); color: var(--color-warning); }
-    .priority-3 .priority-badge { background: var(--color-info-bg); color: var(--color-info); }
-
-    .alert-stars { display: flex; gap: 1px; }
-
-    .alert-branch {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .alert-text {
-      font-size: var(--font-size-sm);
-      color: var(--color-text);
-      line-height: 1.6;
-      margin-bottom: var(--space-2);
-      max-height: 60px;
-      overflow: hidden;
-    }
-
-    .alert-tags {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: var(--space-2);
-    }
-
-    .risk-tag {
-      background: var(--color-danger-bg);
-      color: var(--color-danger);
-      padding: 2px 8px;
-      border-radius: var(--radius-sm);
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .alert-meta {
-      display: flex;
-      gap: var(--space-4);
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-    }
-
-    .alert-meta span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* History Tab */
-    .filter-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      margin-bottom: var(--space-5);
-    }
-
-    .filter-row select {
-      padding: 8px 14px;
-      border-radius: var(--radius-md);
-      font-size: var(--font-size-sm);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      color: var(--color-text);
-      cursor: pointer;
-    }
-
-    .filter-row select:focus {
+    .search-wrap svg { color: #888; }
+    .search-wrap input {
+      border: none;
       outline: none;
-      border-color: var(--color-primary);
+      padding: 8px;
+      width: 100%;
+      font-size: 13px;
     }
 
-    .status-summary { display: flex; gap: 8px; margin-left: auto; }
-
-    .mini-badge {
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      font-size: var(--font-size-xs);
+    .btn-primary {
+      background: #fff;
+      color: #0070f4;
+      border: 1px solid #0070f4;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
       font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-primary:hover { background: #f0f7ff; }
+    
+    .btn-outline {
+      background: #fff;
+      color: #333;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-outline:hover { background: #f8f9fa; }
+
+    .settings-icons {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+    .icon-btn {
+      background: #fff;
+      border: 1px solid #ced4da;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #555;
+    }
+    .icon-btn:hover { background: #f8f9fa; }
+
+    /* BODY ROW (Sidebar + Content) */
+    .kv-body-row {
+      display: flex;
+      flex: 1;
+      padding: 0 16px 16px 16px;
+      gap: 16px;
+      align-items: flex-start;
     }
 
-    .new-bg { background: var(--color-danger-bg); color: var(--color-danger); }
-    .ack-bg { background: var(--color-warning-bg); color: var(--color-warning); }
-    .res-bg { background: var(--color-success-bg); color: var(--color-success); }
-
-    .history-list {
+    /* SIDEBAR */
+    .kv-sidebar {
+      width: 220px;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: 16px;
     }
 
-    .history-card {
+    .filter-box {
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border: 1px solid #e0e4eb;
+    }
+    .filter-title {
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: var(--space-4) var(--space-5);
-      border-radius: var(--radius-lg);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      transition: all var(--transition-base);
     }
-
-    .history-card:hover {
-      box-shadow: var(--shadow-sm);
-      transform: translateX(2px);
-    }
-
-    .status-new { border-left: 3px solid var(--color-danger); }
-    .status-acknowledged { border-left: 3px solid var(--color-warning); }
-    .status-resolved { border-left: 3px solid var(--color-success); }
-
-    .history-left { display: flex; gap: var(--space-3); align-items: flex-start; }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-top: 5px;
-      flex-shrink: 0;
-    }
-
-    .dot-new { background: var(--color-danger); }
-    .dot-ack { background: var(--color-warning); }
-    .dot-res { background: var(--color-success); }
-
-    .history-branch {
-      font-size: var(--font-size-base);
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 3px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .history-rule { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 3px; }
-    .history-time { font-size: var(--font-size-xs); color: var(--color-text-muted); }
-
-    .history-timeline {
+    .filter-link {
       font-size: 11px;
-      color: var(--color-text-muted);
-      margin-top: 4px;
-      display: flex;
-      gap: var(--space-3);
-    }
-
-    .history-actions { display: flex; gap: 8px; align-items: center; }
-
-    .action-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-md);
-      border: none;
-      font-size: var(--font-size-xs);
-      font-weight: 600;
+      color: #0070f4;
+      font-weight: 400;
       cursor: pointer;
-      transition: all var(--transition-base);
     }
-
-    .ack-btn { background: var(--color-warning-bg); color: var(--color-warning); }
-    .ack-btn:hover { background: rgba(217, 119, 6, 0.2); }
-
-    .resolve-btn { background: var(--color-success-bg); color: var(--color-success); }
-    .resolve-btn:hover { background: rgba(5, 150, 105, 0.2); }
-
-    .status-label {
-      font-size: var(--font-size-xs);
-      color: var(--color-success);
-      font-weight: 600;
+    .filter-search {
+      margin: 0 12px 10px 12px;
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 4px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      padding: 0 6px;
+      background: #f8f9fa;
     }
-
-    .empty-state-pro {
-      padding: 3rem 1rem;
-      text-align: center;
-      color: #555;
-      background: #F9F9F9;
-      border: 1px dashed #CCC;
-      border-radius: 4px; /* Vuông vức */
+    .filter-search svg { color: #888; margin-right: 4px; }
+    .filter-search input {
+      border: none; background: transparent; padding: 6px 0; width: 100%; font-size: 12px; outline: none;
+    }
+    .filter-content {
+      padding: 0 12px 12px 12px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 8px;
     }
-    
-    .empty-state-pro .empty-icon {
-      margin-bottom: 1rem;
-      opacity: 0.6;
-      color: #666;
+    .radio-label {
+      font-size: 13px; color: #444; display: flex; align-items: center; gap: 6px; cursor: pointer;
     }
-    
-    .empty-state-pro .empty-text {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #333;
+    .badge {
+      background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700;
     }
-    
-    .empty-state-pro .empty-subtext {
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      color: #888;
+    .mt-2 { margin-top: 8px; }
+    .btn-block { width: 100%; justify-content: center; }
+    .tg-status { font-size: 12px; font-weight: 600; color: #666; display: flex; align-items: center; gap: 6px; }
+    .tg-status.connected { color: #059669; }
+    .tg-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .tg-status.connected .tg-dot { background: #10b981; }
+
+    /* TABLE LAYOUT */
+    .kv-table-area {
+      flex: 1;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border: 1px solid #e0e4eb;
+      min-width: 0; /* Important to prevent overflow */
+      overflow-x: auto;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Suggest Button */
-    .suggest-btn {
-      display: flex; align-items: center; gap: 4px;
-      padding: 3px 10px; border-radius: var(--radius-sm);
-      border: 1px solid var(--color-primary); background: transparent;
-      color: var(--color-primary); font-size: 11px; font-weight: 600;
-      cursor: pointer; transition: all var(--transition-fast);
-      margin-left: auto;
+    .table-banner {
+      padding: 10px 16px; background: #e6f3ff; border-bottom: 1px solid #b3d7ff;
+      font-size: 13px; color: #004085; display: flex; align-items: center; justify-content: space-between;
     }
-    .suggest-btn:hover { background: var(--color-primary); color: white; }
+    .tg-banner { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+    .close-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: inherit; opacity: 0.6; }
+    .close-btn:hover { opacity: 1; }
 
-    /* Modal */
+    .kv-table {
+      width: 100%; border-collapse: collapse; min-width: 900px;
+    }
+    .kv-table th, .kv-table td {
+      padding: 10px 12px; text-align: left; font-size: 13px; border-bottom: 1px solid #f0f0f0;
+    }
+    .kv-table th {
+      background: #e9eaec; font-weight: 700; color: #333; position: sticky; top: 0; border-bottom: 1px solid #ccc;
+    }
+    .kv-table tbody tr:hover { background: #fdfdfd; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; z-index: 10; }
+
+    /* Columns Config */
+    .col-chk, .col-star { width: 30px; text-align: center; }
+    .col-id { width: 90px; }
+    .col-main { width: 35%; }
+    .col-branch { width: 15%; }
+    .col-risk { width: 110px; }
+    .col-status { width: 100px; }
+    .col-time { width: 120px; }
+    .col-action { width: 70px; text-align: right; }
+
+    .link { color: #0070f4; cursor: pointer; font-weight: 500;}
+    .link:hover { text-decoration: underline; }
+
+    .tbl-text { color: #333; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .tbl-subtext { font-size: 11px; color: #888; margin-top: 4px; }
+    .tbl-tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap;}
+    .badg { font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 2px; color: #555; }
+    .badg.risk { background: #fde8e8; color: #c81e1e; }
+
+    .dot-label { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+    .r-1 { background: #dc3545; }
+    .r-2 { background: #ffc107; }
+    .r-3 { background: #17a2b8; }
+
+    .st-badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .st-badge.new { background: #fde8e8; color: #c81e1e; }
+    .st-badge.ack { background: #fef08a; color: #a16207; }
+    .st-badge.res { background: #def7ec; color: #03543f; }
+
+    .empty-tr td {
+      text-align: center; color: #888; padding: 24px; font-style: italic;
+    }
+
+    .tbl-btn {
+      background: #f8f9fa; border: 1px solid #ced4da; border-radius: 3px;
+      padding: 4px; cursor: pointer; color: #555; margin-left: 4px;
+    }
+    .tbl-btn:hover { background: #e2e6ea; }
+    .tbl-btn.green { color: #059669; }
+
+    /* Pagination Bar */
+    .table-pager {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; border-top: 1px solid #eee; background: #fff; border-radius: 0 0 4px 4px;
+      margin-top: auto;
+    }
+    .pager-info { font-size: 13px; color: #666; }
+    .pager-btns { display: flex; gap: 4px; }
+    .pager-btns button {
+      background: white; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 8px;
+      font-size: 13px; cursor: pointer; color: #555;
+    }
+    .pager-btns button.active { background: #0070f4; color: white; border-color: #0070f4; }
+    .pager-btns button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Modal Styling reused */
     .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      z-index: 100; backdrop-filter: blur(2px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100;
     }
     .suggestion-modal {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: white; border-radius: var(--radius-lg);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-      padding: 24px; width: 560px; max-width: 90vw;
-      max-height: 80vh; overflow-y: auto; z-index: 101;
+      background: white; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      padding: 24px; width: 600px; max-width: 90vw; max-height: 80vh; overflow-y: auto; z-index: 101;
     }
     .modal-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px; padding-bottom: 12px;
-      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;
     }
-    .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--color-text); }
-    .close-modal {
-      background: none; border: none; color: var(--color-text-muted);
-      cursor: pointer; padding: 4px; border-radius: 4px;
-    }
-    .close-modal:hover { color: var(--color-text); background: var(--color-bg); }
-
-    .modal-review { margin-bottom: 16px; }
-    .review-label { font-size: 11px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 6px; }
-    .review-text { font-size: 13px; color: var(--color-text); line-height: 1.6; background: var(--color-bg); padding: 12px; border-radius: var(--radius-md); }
-    .review-cats { display: flex; gap: 6px; margin-top: 8px; }
-    .cat-tag { padding: 2px 10px; border-radius: var(--radius-full); background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; }
-
-    .suggestion-loading { text-align: center; padding: 24px; color: var(--color-text-muted); font-size: 13px; }
-    .suggestion-list { display: flex; flex-direction: column; gap: 12px; }
-    .suggestion-item {
-      border: 1px solid var(--color-border); border-radius: var(--radius-md);
-      padding: 12px; transition: border-color var(--transition-fast);
-    }
-    .suggestion-item:hover { border-color: var(--color-primary); }
-    .suggestion-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .suggestion-num { font-size: 11px; font-weight: 800; color: var(--color-primary); }
-    .suggestion-cat { font-size: 11px; color: var(--color-text-muted); font-weight: 600; }
-    .copy-btn {
-      margin-left: auto; padding: 3px 12px;
-      border: 1px solid var(--color-border); background: white;
-      border-radius: var(--radius-sm); font-size: 11px;
-      font-weight: 600; cursor: pointer; transition: all var(--transition-fast);
-      color: var(--color-text-secondary);
-    }
-    .copy-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
-    .suggestion-text { font-size: 13px; color: var(--color-text); line-height: 1.6; }
-
-    /* ─── Manager Pro Alerts ─── */
-    .manager-dashboard {
-      background: var(--pl-bg-pro);
-      border: 1px solid var(--color-border);
-      padding: var(--spacing-grid);
-      border-radius: var(--border-radius-pro);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .dashboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-grid);
-    }
-
-    .dashboard-header h1 {
-      font-family: var(--font-pro);
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--pl-dark-green);
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .table-header, .table-row {
-      display: grid;
-      grid-template-columns: 2fr 1.5fr 3fr 1.5fr;
-      gap: var(--spacing-grid);
-      padding: 1rem;
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    .table-header {
-      background: var(--pl-card-bg);
-      font-weight: var(--font-bold);
-      color: #666;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      border: 1px solid var(--color-border);
-      border-radius: 4px 4px 0 0;
-    }
-
-    .table-row {
-      background: var(--pl-card-bg);
-      transition: var(--transition-pro);
-      align-items: start;
-      border-left: 1px solid var(--color-border);
-      border-right: 1px solid var(--color-border);
-    }
-    
-    .table-row:last-child {
-      border-radius: 0 0 4px 4px;
-    }
-
-    .table-row:hover {
-      background: #F9F9F9;
-      box-shadow: var(--shadow-pro);
-      z-index: 10;
-      position: relative;
-    }
-
-    .table-row.critical { border-left: 4px solid var(--pl-alert-red); }
-    .table-row.warning { border-left: 4px solid var(--pl-warning-orange); }
-    .table-row.info { border-left: 4px solid var(--color-info); }
-
-    .branch-name { font-weight: 600; color: var(--color-text); font-size: 0.95rem; }
-    .trend {
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-    .trend.up { color: var(--pl-alert-red); }
-    .trend.down { color: var(--pl-warning-orange); }
-
-    .reason { display: flex; flex-direction: column; gap: 8px; }
-    .alert-msg { font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; }
-
-    .risk-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-    .risk-badge { 
-      font-size: 0.75rem; 
-      background: var(--color-bg); 
-      padding: 3px 8px; 
-      border-radius: 4px; 
-      border: 1px solid var(--color-border); 
-      color: var(--color-text-secondary);
-      font-weight: 600;
-    }
-
-    .actions-cell {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .btn-pro {
-      font-family: var(--font-pro);
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: var(--transition-pro);
-      text-align: center;
-    }
-
-    .btn-pro.primary {
-      background: var(--pl-dark-green);
-      color: white;
-      border: 1px solid var(--pl-dark-green);
-    }
-    .btn-pro.primary:hover { background: #1F3D1C; border-color: #1F3D1C; }
-
-    .btn-pro.outline {
-      background: transparent;
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border);
-    }
-    .btn-pro.outline:hover { background: var(--color-bg); }
-  `],
+    .modal-header h3 { font-size: 16px; font-weight: 700; margin: 0; }
+    .close-modal { background: none; border: none; cursor: pointer; padding: 4px; }
+    .review-label { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 6px; }
+    .review-text { font-size: 13px; background: #f8f9fa; padding: 12px; border-radius: 4px; }
+    .cat-tag { padding: 2px 8px; background: #ecfdf5; color: #059669; border-radius: 12px; font-size: 11px; margin-right: 6px; }
+    .suggestion-item { border: 1px solid #eee; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+    .suggestion-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .suggestion-num { font-weight: 700; color: #0070f4; font-size: 12px; }
+    .copy-btn { border: 1px solid #ccc; background: #fff; padding: 2px 8px; border-radius: 3px; font-size: 11px; cursor: pointer; }
+    .copy-btn:hover { background: #f0f0f0; }
+    .suggestion-text { font-size: 13px; line-height: 1.5; color: #333; margin: 0; }
+  `]
 })
 export class AlertsComponent implements OnInit {
   alerts: any[] = [];
@@ -919,7 +559,7 @@ export class AlertsComponent implements OnInit {
         this.suggestionLoading = false;
       },
       error: () => {
-        this.suggestionModal.suggestions = [{ category: 'Chung', text: 'Phúc Long cảm ơn bạn đã dành thời gian chia sẻ trải nghiệm. Chúng tôi ghi nhận và sẽ cải thiện dịch vụ để phục vụ bạn tốt hơn.' }];
+        this.suggestionModal.suggestions = [{ category: 'Chung', text: 'Chân thành cảm ơn bạn đã đánh giá. Chúng tôi sẽ trích xuất thông tin để cải thiện.' }];
         this.suggestionModal.categories = ['Chung'];
         this.suggestionLoading = false;
       },
@@ -976,8 +616,6 @@ export class AlertsComponent implements OnInit {
     });
   }
 
-  getStarsArray(n: number): number[] { return Array(n).fill(0); }
-
   formatTime(date: string): string {
     if (!date) return '';
     return new Date(date).toLocaleString('vi-VN', {
@@ -986,4 +624,3 @@ export class AlertsComponent implements OnInit {
     });
   }
 }
-

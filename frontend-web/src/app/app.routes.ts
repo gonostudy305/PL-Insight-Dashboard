@@ -50,4 +50,10 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./pages/map/map.component').then(m => m.MapComponent),
     },
+    {
+        path: 'profile',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./pages/profile/profile.component').then(m => m.ProfileComponent),
+    },
 ];

@@ -8,361 +8,363 @@ import { ApiService } from '../../services/api.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="monitor">
-      <div class="header-row">
-        <div>
-          <h2 class="page-title">Live Sentiment Monitor</h2>
-          <p class="page-subtitle">Phân tích cảm xúc thời gian thực bằng PhoBERT</p>
+    <div class="kv-wrapper">
+      <!-- TOP ACTION BAR -->
+      <div class="kv-header-row">
+        <div class="kv-title-area">
+          <h2>Live Monitor</h2>
         </div>
-        <div class="header-actions">
-          <button class="scan-btn" (click)="runScan()" [disabled]="scanning">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        <div class="kv-top-actions">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            <input type="text" placeholder="Theo chi nhánh, nội dung, từ khóa">
+          </div>
+          <button class="btn-primary" (click)="runScan()" [disabled]="scanning">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
             {{ scanning ? 'Đang phân tích...' : 'Scan Now' }}
           </button>
-          <span class="poll-indicator" [class.active]="pollingActive">
+          <span class="live-pill" [class.active]="pollingActive">
             <span class="pulse-dot" *ngIf="pollingActive"></span>
             {{ pollingActive ? 'Live' : 'Paused' }}
           </span>
+          <button class="btn-outline">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Xuất file
+          </button>
+          <div class="settings-icons">
+            <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+            <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+          </div>
         </div>
       </div>
 
-      <!-- Scan Result Banner -->
-      <div class="scan-banner" *ngIf="lastScanResult">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span>Đã phân tích: <strong>{{ lastScanResult.analyzed }}</strong></span>
-        <span *ngIf="lastScanResult.failed > 0" style="color: var(--color-danger);">Lỗi: {{ lastScanResult.failed }}</span>
-        <span>Chưa xử lý: {{ lastScanResult.remaining }}</span>
-        <button class="close-banner" (click)="lastScanResult = null">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-        </button>
-      </div>
-
-      <!-- Filters -->
-      <div class="filter-row">
-        <select [(ngModel)]="filterSentiment" (change)="loadRecent()">
-          <option value="">Tất cả cảm xúc</option>
-          <option value="positive">Tích cực</option>
-          <option value="negative">Tiêu cực</option>
-        </select>
-        <select [(ngModel)]="filterBranch" (change)="loadRecent()">
-          <option value="">Tất cả chi nhánh</option>
-          @for (b of branches; track b.placeId) {
-            <option [value]="b.placeId">{{ b.branchAddress }}</option>
-          }
-        </select>
-        <span class="total-badge">{{ total }} kết quả</span>
-      </div>
-
-      <!-- Review List -->
-      <div class="review-list" *ngIf="reviews.length > 0; else emptyState">
-        @for (review of reviews; track review.reviewId) {
-          <div class="review-card"
-            [class.positive]="review.aiSentimentSummary === 'Positive'"
-            [class.negative]="review.aiSentimentSummary === 'Negative'"
-            [class.mixed]="review.aiSentimentSummary === 'Mixed'"
-            [attr.data-length]="review.text?.length < 100 ? 'short' : 'long'">
-            <div class="card-header">
-              <span class="sentiment-badge"
-                [class.badge-positive]="review.aiSentimentSummary === 'Positive'"
-                [class.badge-negative]="review.aiSentimentSummary === 'Negative'"
-                [class.badge-mixed]="review.aiSentimentSummary === 'Mixed'">
-                {{ review.aiSentimentSummary === 'Positive' ? 'Tích cực' :
-                   review.aiSentimentSummary === 'Negative' ? 'Tiêu cực' : 'Hỗn hợp' }}
-              </span>
-              <span class="ai-label">{{ review.aiSentimentSummary }}</span>
-              <span class="stars">{{ getStarDisplay(review.stars) }}</span>
-              <span class="time">{{ formatTime(review.analyzedAt) }}</span>
-            </div>
-
-            <p class="review-text">{{ review.text }}</p>
-
-            <div class="card-meta">
-              <div class="confidence-display"
-                [class.high]="review.confidenceAvg >= 0.8"
-                [class.mid]="review.confidenceAvg >= 0.5 && review.confidenceAvg < 0.8"
-                [class.low]="review.confidenceAvg < 0.5">
-                Độ tin cậy: {{ (review.confidenceAvg * 100).toFixed(1) }}%
-              </div>
-              <span class="branch-tag">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                {{ review.branchAddress }}
-              </span>
-              <span class="keywords-tag" *ngIf="review.keywords?.length">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
-                {{ review.keywords.join(', ') }}
-              </span>
-              <span class="translated-tag" *ngIf="review.isTranslated">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                Translated
-              </span>
+      <div class="kv-body-row">
+        <!-- SIDEBAR -->
+        <div class="kv-sidebar">
+          <div class="filter-box">
+            <div class="filter-title">Cảm xúc AI <a class="filter-link">Tạo mới</a></div>
+            <div class="filter-content">
+              <label class="radio-label" [class.active]="filterSentiment === ''">
+                <input type="radio" name="sent" [checked]="filterSentiment === ''" (change)="filterSentiment = ''; loadRecent()"> Tất cả
+              </label>
+              <label class="radio-label" [class.active]="filterSentiment === 'positive'">
+                <input type="radio" name="sent" [checked]="filterSentiment === 'positive'" (change)="filterSentiment = 'positive'; loadRecent()"> Tích cực
+              </label>
+              <label class="radio-label" [class.active]="filterSentiment === 'negative'">
+                <input type="radio" name="sent" [checked]="filterSentiment === 'negative'" (change)="filterSentiment = 'negative'; loadRecent()"> Tiêu cực
+              </label>
+              <label class="radio-label" [class.active]="filterSentiment === 'mixed'">
+                <input type="radio" name="sent" [checked]="filterSentiment === 'mixed'" (change)="filterSentiment = 'mixed'; loadRecent()"> Hỗn hợp
+              </label>
             </div>
           </div>
-        }
-      </div>
 
-      <ng-template #emptyState>
-        <div class="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-          <p>Chưa có review nào được phân tích AI.</p>
-          <p>Bấm <strong>Scan Now</strong> để bắt đầu phân tích.</p>
+          <div class="filter-box">
+            <div class="filter-title">Chi nhánh</div>
+            <div class="filter-search">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+              <input type="text" placeholder="Tìm chi nhánh">
+            </div>
+            <div class="filter-content">
+              <label class="radio-label" [class.active]="filterBranch === ''">
+                <input type="radio" name="br" [checked]="filterBranch === ''" (change)="filterBranch = ''; loadRecent()"> Toàn hệ thống
+              </label>
+              <label class="radio-label" *ngFor="let b of branches" [class.active]="filterBranch === b.placeId">
+                <input type="radio" name="br" [checked]="filterBranch === b.placeId" (change)="filterBranch = b.placeId; loadRecent()"> {{ b.branchAddress }}
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-box sidebar-stats">
+            <div class="filter-title">Trạng thái Live</div>
+            <div class="filter-content">
+              <div class="stat-row">
+                <span class="stat-label">Tổng review phân tích</span>
+                <span class="stat-value">{{ total }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Polling</span>
+                <span class="stat-value" [class.live]="pollingActive">{{ pollingActive ? '30s' : 'OFF' }}</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </ng-template>
+
+        <!-- DATA TABLE -->
+        <div class="kv-table-area">
+          <!-- Scan Result Banner -->
+          <div class="table-banner" *ngIf="lastScanResult">
+            ✅ Đã phân tích: {{lastScanResult.analyzed}} | Lỗi: {{lastScanResult.failed || 0}} | Còn lại: {{lastScanResult.remaining || 0}}
+            <button class="close-btn" (click)="lastScanResult = null">×</button>
+          </div>
+
+          <table class="kv-table">
+            <thead>
+              <tr>
+                <th class="col-chk"><input type="checkbox"></th>
+                <th class="col-star">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </th>
+                <th class="col-id">Mã</th>
+                <th class="col-sentiment">Sắc thái AI</th>
+                <th class="col-stars-h">Sao</th>
+                <th class="col-branch">Chi nhánh</th>
+                <th class="col-text">Nội dung</th>
+                <th class="col-conf">Tin cậy</th>
+                <th class="col-kw">Keywords</th>
+                <th class="col-time">Thời gian</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let review of reviews; let i = index"
+                  [class.row-positive]="review.aiSentimentSummary === 'Positive'"
+                  [class.row-negative]="review.aiSentimentSummary === 'Negative'"
+                  [class.row-mixed]="review.aiSentimentSummary === 'Mixed'">
+                <td class="col-chk"><input type="checkbox"></td>
+                <td class="col-star"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></td>
+                <td class="col-id"><span class="link">LV-{{i + 1}}</span></td>
+                <td class="col-sentiment">
+                  <span class="st-badge"
+                    [class.positive]="review.aiSentimentSummary === 'Positive'"
+                    [class.negative]="review.aiSentimentSummary === 'Negative'"
+                    [class.mixed]="review.aiSentimentSummary === 'Mixed'">
+                    {{ review.aiSentimentSummary === 'Positive' ? 'Tích cực' :
+                       review.aiSentimentSummary === 'Negative' ? 'Tiêu cực' : 'Hỗn hợp' }}
+                  </span>
+                </td>
+                <td class="col-stars-h">
+                  <span class="stars-inline">
+                    <svg *ngFor="let s of getStarsArray(review.stars)" width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </span>
+                </td>
+                <td class="col-branch">{{ review.branchAddress }}</td>
+                <td class="col-text">
+                  <div class="tbl-text">{{ review.text }}</div>
+                </td>
+                <td class="col-conf">
+                  <span class="conf-badge"
+                    [class.high]="review.confidenceAvg >= 0.8"
+                    [class.mid]="review.confidenceAvg >= 0.5 && review.confidenceAvg < 0.8"
+                    [class.low]="review.confidenceAvg < 0.5">
+                    {{ (review.confidenceAvg * 100).toFixed(0) }}%
+                  </span>
+                </td>
+                <td class="col-kw">
+                  <span class="kw-tag" *ngFor="let k of review.keywords?.slice(0, 3)">{{k}}</span>
+                </td>
+                <td class="col-time">{{ formatTime(review.analyzedAt) }}</td>
+              </tr>
+              <tr *ngIf="reviews.length === 0" class="empty-tr">
+                <td colspan="10">Chưa có review nào được phân tích AI. Bấm <strong>Scan Now</strong> để bắt đầu.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="table-pager">
+            <div class="pager-info">Hiển thị {{ reviews.length }} / {{ total }} nhận xét đã phân tích</div>
+            <div class="pager-btns">
+              <button disabled>&lt;</button>
+              <button class="active">1</button>
+              <button disabled>&gt;</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    .monitor {
-      max-width: 1200px;
-      animation: fadeInUp 0.4s ease-out;
-    }
-
-    .header-row {
+    /* ─── KV SYSTEM LAYOUT ─── */
+    .kv-wrapper {
+      background: #f4f5f7;
+      min-height: calc(100vh - 52px);
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: var(--space-6);
+      flex-direction: column;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .page-title {
-      font-size: var(--font-size-2xl);
-      font-weight: 800;
-      color: var(--color-text);
-      letter-spacing: -0.03em;
+    /* TOP BAR */
+    .kv-header-row {
+      display: flex; padding: 12px 16px; gap: 16px;
+    }
+    .kv-title-area {
+      width: 200px; flex-shrink: 0; display: flex; align-items: center;
+    }
+    .kv-title-area h2 { font-size: 1.15rem; font-weight: 700; color: #333; margin: 0; }
+
+    .kv-top-actions {
+      flex: 1; display: flex; align-items: center; gap: 10px;
     }
 
-    .page-subtitle {
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-base);
-      margin-top: var(--space-1);
+    .search-wrap {
+      flex: 1; max-width: 380px;
+      display: flex; align-items: center;
+      background: #fff; border: 1px solid #ced4da; border-radius: 4px; padding: 0 10px;
     }
+    .search-wrap svg { color: #888; flex-shrink: 0; }
+    .search-wrap input { border: none; outline: none; padding: 7px 8px; width: 100%; font-size: 13px; }
 
-    .header-actions { display: flex; align-items: center; gap: var(--space-4); }
-
-    .scan-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border-radius: var(--radius-md);
-      border: none;
-      background: var(--color-primary);
-      color: white;
-      font-size: var(--font-size-base);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--transition-base);
+    .btn-primary {
+      background: #fff; color: #0070f4; border: 1px solid #0070f4; border-radius: 4px;
+      padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: 0.2s;
     }
+    .btn-primary:hover { background: #f0f7ff; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .scan-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(12, 113, 61, 0.3);
+    .btn-outline {
+      background: #fff; color: #333; border: 1px solid #ced4da; border-radius: 4px;
+      padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
     }
+    .btn-outline:hover { background: #f8f9fa; }
 
-    .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .poll-indicator {
-      font-size: var(--font-size-sm);
-      color: var(--color-text-muted);
-      padding: 6px 14px;
-      border-radius: var(--radius-full);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .live-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+      border: 1px solid #ced4da; color: #888; background: #fff;
     }
-
-    .poll-indicator.active {
-      color: var(--color-success);
-      border-color: rgba(5, 150, 105, 0.3);
-    }
-
+    .live-pill.active { color: #059669; border-color: rgba(5,150,105,0.3); background: #ecfdf5; }
     .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--color-success);
+      width: 8px; height: 8px; border-radius: 50%; background: #10b981;
       animation: pulse 2s infinite;
     }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    .settings-icons { margin-left: auto; display: flex; gap: 6px; }
+    .icon-btn {
+      background: #fff; border: 1px solid #ced4da; padding: 5px; border-radius: 4px;
+      cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover { background: #f0f0f0; }
+
+    /* BODY ROW */
+    .kv-body-row {
+      display: flex; flex: 1; padding: 0 16px 16px 16px; gap: 16px; align-items: flex-start;
     }
 
-    .scan-banner {
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
-      padding: var(--space-3) var(--space-5);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--space-4);
-      background: var(--color-success-bg);
-      border: 1px solid rgba(5, 150, 105, 0.2);
-      color: var(--color-text);
-      font-size: var(--font-size-sm);
+    /* SIDEBAR — same width/style as /reviews */
+    .kv-sidebar {
+      width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+    }
+    .filter-box {
+      background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      border: 1px solid #e0e4eb;
+    }
+    .filter-title {
+      padding: 10px 12px; font-size: 13px; font-weight: 700; color: #333;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .filter-link { font-size: 11px; color: #0070f4; cursor: pointer; font-weight: 400; }
+    .filter-search {
+      margin: 0 10px 8px 10px; display: flex; align-items: center;
+      border: 1px solid #ced4da; border-radius: 3px; padding: 0 6px; background: #f8f9fa;
+    }
+    .filter-search svg { color: #888; margin-right: 4px; }
+    .filter-search input { border: none; background: transparent; padding: 5px 0; width: 100%; font-size: 12px; outline: none; }
+    .filter-content {
+      padding: 0 12px 12px 12px; display: flex; flex-direction: column; gap: 6px;
+      max-height: 220px; overflow-y: auto;
+    }
+    .radio-label {
+      font-size: 13px; color: #444; display: flex; align-items: center; gap: 6px; cursor: pointer;
+      padding: 4px 6px; border-radius: 3px; transition: 0.15s;
+    }
+    .radio-label:hover { background: #f0f4ff; }
+    .radio-label.active { color: #0070f4; font-weight: 600; }
+
+    .stat-row { display: flex; justify-content: space-between; font-size: 13px; color: #555; }
+    .stat-value { font-weight: 700; color: #333; }
+    .stat-value.live { color: #059669; }
+
+    /* TABLE */
+    .kv-table-area {
+      flex: 1; background: #fff; border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04); border: 1px solid #e0e4eb;
+      min-width: 0; overflow-x: auto; display: flex; flex-direction: column;
     }
 
-    .close-banner {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: var(--color-text-muted);
-      cursor: pointer;
-      display: flex;
+    .table-banner {
+      padding: 10px 16px; background: #e6f3ff; border-bottom: 1px solid #b3d7ff;
+      font-size: 13px; color: #004085; display: flex; align-items: center; justify-content: space-between;
+    }
+    .close-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: inherit; opacity: 0.6; }
+    .close-btn:hover { opacity: 1; }
+
+    .kv-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+    .kv-table th, .kv-table td {
+      padding: 9px 10px; text-align: left; font-size: 13px; border-bottom: 1px solid #f0f0f0;
+      white-space: nowrap;
+    }
+    .kv-table th {
+      background: #e9eaec; font-weight: 700; color: #333;
+      position: sticky; top: 0; z-index: 5; border-bottom: 1px solid #ccc;
+    }
+    .kv-table tbody tr { transition: background 0.15s; }
+    .kv-table tbody tr:hover { background: #f8fafd; }
+
+    /* Row tinting */
+    .row-negative { border-left: 3px solid #dc3545; }
+    .row-positive { border-left: 3px solid #28a745; }
+    .row-mixed { border-left: 3px solid #ffc107; }
+
+    /* Columns */
+    .col-chk, .col-star { width: 32px; text-align: center; }
+    .col-id { width: 60px; }
+    .col-sentiment { width: 80px; }
+    .col-stars-h { width: 85px; }
+    .col-branch { width: 14%; }
+    .col-text { width: 30%; white-space: normal !important; }
+    .col-conf { width: 65px; text-align: center; }
+    .col-kw { width: 15%; white-space: normal !important; }
+    .col-time { width: 120px; }
+
+    .link { color: #0070f4; cursor: pointer; font-weight: 500; }
+    .link:hover { text-decoration: underline; }
+
+    .st-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .st-badge.positive { background: #def7ec; color: #03543f; }
+    .st-badge.negative { background: #fde8e8; color: #c81e1e; }
+    .st-badge.mixed { background: #fef3c7; color: #92400e; }
+
+    .stars-inline { display: flex; gap: 1px; }
+
+    .tbl-text {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; line-height: 1.45; color: #333;
     }
 
-    .filter-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      margin-bottom: var(--space-5);
-      position: sticky;
-      top: 0;
-      background: var(--color-bg);
-      padding: var(--space-3) 0;
-      z-index: 50;
+    .conf-badge {
+      display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 700;
+    }
+    .conf-badge.high { background: #def7ec; color: #03543f; }
+    .conf-badge.mid { background: #fef3c7; color: #92400e; }
+    .conf-badge.low { background: #fde8e8; color: #c81e1e; }
+
+    .kw-tag {
+      display: inline-block; font-size: 10px; background: #eef2ff; color: #4338ca;
+      padding: 1px 5px; border-radius: 2px; margin: 1px 2px;
     }
 
-    .filter-row select {
-      padding: 8px 14px;
-      border-radius: var(--radius-md);
-      font-size: var(--font-size-sm);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      color: var(--color-text);
-      cursor: pointer;
+    .empty-tr td { text-align: center; color: #888; padding: 32px; font-style: italic; }
+
+    /* PAGINATION */
+    .table-pager {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 16px; border-top: 1px solid #eee; background: #fff;
+      border-radius: 0 0 4px 4px; margin-top: auto;
     }
-
-    .filter-row select:focus {
-      outline: none;
-      border-color: var(--color-primary);
+    .pager-info { font-size: 13px; color: #666; }
+    .pager-btns { display: flex; gap: 3px; }
+    .pager-btns button {
+      background: white; border: 1px solid #ced4da; border-radius: 3px;
+      padding: 3px 9px; font-size: 13px; cursor: pointer; color: #555;
     }
-
-    .total-badge {
-      margin-left: auto;
-      font-size: var(--font-size-sm);
-      color: var(--color-text-muted);
-      padding: 6px 14px;
-      border-radius: var(--radius-full);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-    }
-
-    .review-list { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); 
-      gap: var(--space-4); 
-    }
-
-    .review-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      padding: var(--space-4);
-      transition: all var(--transition-base);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .review-card[data-length="short"] {
-      padding: var(--space-3) var(--space-4);
-      border-left-width: 4px;
-    }
-
-    .review-card[data-length="long"] {
-      padding: var(--space-4);
-      border-left-width: 4px;
-      background: var(--color-bg);
-    }
-
-    .review-card:hover {
-      box-shadow: var(--shadow-card-hover);
-      transform: translateY(-1px);
-    }
-
-    .review-card.positive { border-left-color: #2E5C2A; }
-    .review-card.negative { border-left-color: #C62828; background: #FFF8F8; }
-    .review-card.mixed { border-left-color: var(--color-warning); }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      margin-bottom: var(--space-3);
-      flex-wrap: wrap;
-    }
-
-    .sentiment-badge {
-      padding: 4px 12px;
-      border-radius: 3px;
-      font-size: var(--font-size-xs);
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-positive { background: var(--color-success-bg); color: var(--color-success); }
-    .badge-negative { background: var(--color-danger-bg); color: var(--color-danger); }
-    .badge-mixed { background: var(--color-warning-bg); color: var(--color-warning); }
-
-    .ai-label { font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 500; }
-    .stars { font-size: var(--font-size-sm); color: var(--color-accent); }
-    .time { margin-left: auto; font-style: italic; color: #666; font-size: 0.85rem; }
-
-    .review-text {
-      font-size: var(--font-size-base);
-      line-height: 1.65;
-      color: var(--color-text);
-      margin-bottom: var(--space-3);
-      max-height: 80px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-align: justify;
-      hyphens: auto;
-    }
-
-    .card-meta {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      flex-wrap: wrap;
-    }
-
-    .confidence-display {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 3px;
-    }
-    .confidence-display.high { color: #155724; background: #d4edda; padding: 2px 8px; }
-    .confidence-display.mid  { color: #856404; background: #fff3cd; padding: 2px 8px; }
-    .confidence-display.low  { color: #721c24; background: #f8d7da; padding: 2px 8px; }
-
-    .branch-tag, .keywords-tag, .translated-tag {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-      padding: 3px 10px;
-      border-radius: var(--radius-full);
-      background: var(--color-bg);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: var(--space-12) var(--space-6);
-      color: var(--color-text-muted);
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--color-border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--space-3);
-    }
-  `],
+    .pager-btns button.active { background: #0070f4; color: white; border-color: #0070f4; }
+    .pager-btns button:disabled { opacity: 0.4; cursor: not-allowed; }
+  `]
 })
 export class LiveMonitorComponent implements OnInit, OnDestroy {
   reviews: any[] = [];
@@ -435,12 +437,10 @@ export class LiveMonitorComponent implements OnInit, OnDestroy {
     if (this.pollTimer) clearInterval(this.pollTimer);
   }
 
-  getStarDisplay(stars: number): string {
-    return '★'.repeat(stars);
-  }
+  getStarsArray(n: number): number[] { return Array(n).fill(0); }
 
   formatTime(date: string): string {
-    if (!date) return '';
+    if (!date) return '---';
     return new Date(date).toLocaleString('vi-VN', {
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit',

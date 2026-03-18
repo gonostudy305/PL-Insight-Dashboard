@@ -10,148 +10,166 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="branch-detail" *ngIf="branch; else loading">
-      <!-- Header -->
-      <div class="header-row">
-        <a routerLink="/dashboard" class="back-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Quay lại Dashboard
-        </a>
-      </div>
-      <h2 class="branch-name">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        {{ branch.branchAddress }}
-      </h2>
-      <p class="branch-sub">{{ branch.district }} — {{ branch.placeId }}</p>
-
-      <!-- KPI Cards -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-value">{{ branch.totalReviews }}</span>
-          <span class="kpi-label">Tổng review</span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-value">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            {{ branch.avgStars }}
-          </span>
-          <span class="kpi-label">Sao trung bình</span>
-        </div>
-        <div class="kpi-card" [class.risk]="branch.negativeRate > 30">
-          <span class="kpi-value">{{ branch.negativeRate }}%</span>
-          <span class="kpi-label">Tỷ lệ tiêu cực</span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-value">{{ branch.responseRate }}%</span>
-          <span class="kpi-label">Tỷ lệ phản hồi</span>
-        </div>
-        <div class="kpi-card" [class.good]="branch.healthScore >= 3">
-          <span class="kpi-value">{{ branch.healthScore }}</span>
-          <span class="kpi-label">Health Score</span>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <!-- Monthly Trend -->
-        <div class="card">
-          <div class="card-header-inner">
-            <h3 class="card-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-              Xu hướng theo tháng
-            </h3>
-          </div>
-          <div class="chart-container">
-            <canvas #trendCanvas></canvas>
-          </div>
-        </div>
-
-        <!-- Star Distribution -->
-        <div class="card">
-          <div class="card-header-inner">
-            <h3 class="card-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              Phân bố sao
-            </h3>
-          </div>
-          <div class="star-bars" *ngIf="branch.starDistribution">
-            @for (star of [5,4,3,2,1]; track star) {
-              <div class="star-row">
-                <span class="star-label">{{ star }} sao</span>
-                <div class="star-bar-bg">
-                  <div class="star-bar-fill"
-                    [style.width.%]="getStarPercent(star)"
-                    [class.star-high]="star >= 4"
-                    [class.star-mid]="star === 3"
-                    [class.star-low]="star <= 2">
-                  </div>
-                </div>
-                <span class="star-count">{{ branch.starDistribution[star] }}</span>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Top Issues -->
-        <div class="card" *ngIf="branch.topIssues?.length > 0">
-          <div class="card-header-inner">
-            <h3 class="card-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
-              Vấn đề phổ biến
-            </h3>
-            <span class="issue-count-label">Từ {{ branch.negativeCount }} review tiêu cực</span>
-          </div>
-          <div class="issue-list">
-            @for (issue of branch.topIssues; track issue.issue; let i = $index) {
-              <div class="issue-row">
-                <span class="issue-rank">#{{ i + 1 }}</span>
-                <span class="issue-name">{{ issue.issue }}</span>
-                <div class="issue-bar-bg">
-                  <div class="issue-bar-fill" [style.width.%]="getIssuePercent(issue.count)"></div>
-                </div>
-                <span class="issue-count">{{ issue.count }}</span>
-              </div>
-            }
+    <div class="page-container">
+      <div class="filter-sidebar">
+        <h3 class="filter-sidebar-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Chi nhánh
+        </h3>
+        <div class="filter-group">
+          <label>Điều hướng</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a routerLink="/map" style="padding: 10px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--pl-surface); color: var(--color-text); text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Xem trên Bản đồ
+            </a>
+            <a routerLink="/dashboard" style="padding: 10px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--pl-surface); color: var(--color-text); text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              Về Dashboard
+            </a>
           </div>
         </div>
       </div>
+      
+      <div class="data-content">
+        <div class="branch-detail" *ngIf="branch; else loading">
+          <!-- Header -->
+          <div class="header-row">
+            <h2 class="branch-name" style="margin-bottom: 0;">
+             {{ branch.branchAddress }}
+            </h2>
+          </div>
+          <p class="branch-sub">{{ branch.district }} — {{ branch.placeId }}</p>
 
-      <!-- Recent Reviews -->
-      <div class="card full-width" style="margin-top: var(--space-5);">
-        <div class="card-header-inner">
-          <h3 class="card-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-            Review gần đây
-          </h3>
-        </div>
-        <div class="review-list" *ngIf="branch.recentReviews?.length > 0; else noReviews">
-          @for (r of branch.recentReviews; track r.reviewId) {
-            <div class="review-item" [class.neg]="r.label === 0" [class.pos]="r.label === 1">
-              <div class="review-header">
-                <span class="review-stars">
-                  @for (s of getStarsArray(r.stars); track s) {
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  }
-                </span>
-                <span class="review-label"
-                  [class.label-neg]="r.label === 0"
-                  [class.label-pos]="r.label === 1">
-                  {{ r.label === 1 ? 'Tích cực' : 'Tiêu cực' }}
-                </span>
-                <span class="review-ai" *ngIf="r.aiSentimentSummary">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-                  {{ r.aiSentimentSummary }}
-                </span>
-                <span class="review-date">{{ r.publishedAtDate | date:'dd/MM/yyyy' }}</span>
-              </div>
-              <p class="review-text">{{ r.text }}</p>
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-value">{{ branch.totalReviews }}</span>
+              <span class="kpi-label">Tổng review</span>
             </div>
-          }
+            <div class="kpi-card">
+              <span class="kpi-value">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                {{ branch.avgStars }}
+              </span>
+              <span class="kpi-label">Sao trung bình</span>
+            </div>
+            <div class="kpi-card" [class.risk]="branch.negativeRate > 30">
+              <span class="kpi-value">{{ branch.negativeRate }}%</span>
+              <span class="kpi-label">Tỷ lệ tiêu cực</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">{{ branch.responseRate }}%</span>
+              <span class="kpi-label">Tỷ lệ phản hồi</span>
+            </div>
+            <div class="kpi-card" [class.good]="branch.healthScore >= 3">
+              <span class="kpi-value">{{ branch.healthScore }}</span>
+              <span class="kpi-label">Health Score</span>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Monthly Trend -->
+            <div class="card">
+              <div class="card-header-inner">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                  Xu hướng theo tháng
+                </h3>
+              </div>
+              <div class="chart-container">
+                <canvas #trendCanvas></canvas>
+              </div>
+            </div>
+
+            <!-- Star Distribution -->
+            <div class="card">
+              <div class="card-header-inner">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  Phân bố sao
+                </h3>
+              </div>
+              <div class="star-bars" *ngIf="branch.starDistribution">
+                @for (star of [5,4,3,2,1]; track star) {
+                  <div class="star-row">
+                    <span class="star-label">{{ star }} sao</span>
+                    <div class="star-bar-bg">
+                      <div class="star-bar-fill"
+                        [style.width.%]="getStarPercent(star)"
+                        [class.star-high]="star >= 4"
+                        [class.star-mid]="star === 3"
+                        [class.star-low]="star <= 2">
+                      </div>
+                    </div>
+                    <span class="star-count">{{ branch.starDistribution[star] }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Top Issues -->
+            <div class="card" *ngIf="branch.topIssues?.length > 0">
+              <div class="card-header-inner">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                  Vấn đề phổ biến
+                </h3>
+                <span class="issue-count-label">Từ {{ branch.negativeCount }} review tiêu cực</span>
+              </div>
+              <div class="issue-list">
+                @for (issue of branch.topIssues; track issue.issue; let i = $index) {
+                  <div class="issue-row">
+                    <span class="issue-rank">#{{ i + 1 }}</span>
+                    <span class="issue-name">{{ issue.issue }}</span>
+                    <div class="issue-bar-bg">
+                      <div class="issue-bar-fill" [style.width.%]="getIssuePercent(issue.count)"></div>
+                    </div>
+                    <span class="issue-count">{{ issue.count }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Reviews -->
+          <div class="card full-width" style="margin-top: var(--space-5);">
+            <div class="card-header-inner">
+              <h3 class="card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                Review gần đây
+              </h3>
+            </div>
+            <div class="review-list" *ngIf="branch.recentReviews?.length > 0; else noReviews">
+              @for (r of branch.recentReviews; track r.reviewId) {
+                <div class="review-item" [class.neg]="r.label === 0" [class.pos]="r.label === 1">
+                  <div class="review-header">
+                    <span class="review-stars">
+                      @for (s of getStarsArray(r.stars); track s) {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      }
+                    </span>
+                    <span class="review-label"
+                      [class.label-neg]="r.label === 0"
+                      [class.label-pos]="r.label === 1">
+                      {{ r.label === 1 ? 'Tích cực' : 'Tiêu cực' }}
+                    </span>
+                    <span class="review-ai" *ngIf="r.aiSentimentSummary">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                      {{ r.aiSentimentSummary }}
+                    </span>
+                    <span class="review-date">{{ r.publishedAtDate | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <p class="review-text">{{ r.text }}</p>
+                </div>
+              }
+            </div>
+            <ng-template #noReviews>
+              <p class="empty">Không có review nào.</p>
+            </ng-template>
+          </div>
         </div>
-        <ng-template #noReviews>
-          <p class="empty">Không có review nào.</p>
-        </ng-template>
       </div>
-    </div>
 
     <ng-template #loading>
       <div class="loading-state">
@@ -162,7 +180,7 @@ Chart.register(...registerables);
   `,
   styles: [`
     .branch-detail {
-      max-width: 1200px;
+      width: 100%;
       animation: fadeInUp 0.4s ease-out;
     }
 

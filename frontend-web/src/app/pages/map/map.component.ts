@@ -41,31 +41,61 @@ const HANOI_CENTER: [number, number] = [21.0285, 105.8342];
     standalone: true,
     imports: [CommonModule],
     template: `
-    <div class="map-page">
-      <div class="page-header">
-        <div>
-          <h2 class="page-title">Bản đồ chi nhánh</h2>
-          <p class="page-subtitle">Vị trí & chỉ số sức khỏe các chi nhánh Phúc Long — Hà Nội</p>
+    <div class="page-container">
+      <!-- Sidebar -->
+      <div class="filter-sidebar">
+        <h3 class="filter-sidebar-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Bản đồ mạng lưới
+        </h3>
+        
+        <div class="filter-group">
+          <label>Khu vực</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button style="padding: 10px; border-radius: 4px; border: 1px solid var(--pl-dark-green); background: var(--pl-dark-green); color: white; cursor: pointer; text-align: left; font-weight: 600;">
+              Hà Nội
+            </button>
+            <button style="padding: 10px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--pl-surface); cursor: pointer; text-align: left; font-weight: 500;">
+              Khác
+            </button>
+          </div>
         </div>
-        <div class="legend">
-          <span class="legend-item"><span class="dot good"></span> Health ≥ 3</span>
-          <span class="legend-item"><span class="dot warning"></span> Health 2-3</span>
-          <span class="legend-item"><span class="dot danger"></span> Health < 2</span>
+
+        <div class="filter-group" style="margin-top: 16px;">
+          <label>Tình trạng Health Score</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 14px; cursor: pointer;">
+              <input type="checkbox" checked style="accent-color: var(--pl-green);"> Tốt (≥ 3)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 14px; cursor: pointer;">
+              <input type="checkbox" checked style="accent-color: var(--color-warning);"> Trung bình (2-3)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 14px; cursor: pointer;">
+              <input type="checkbox" checked style="accent-color: var(--color-danger);"> Yếu (< 2)
+            </label>
+          </div>
         </div>
       </div>
-      <div id="map-container" class="map-container" role="application" aria-label="Bản đồ chi nhánh Phúc Long Hà Nội"></div>
+
+      <!-- Main Content -->
+      <div class="data-content" style="display: flex; flex-direction: column;">
+        <div class="page-header">
+          <div>
+            <h2 class="page-title">Bản đồ chi nhánh</h2>
+            <p class="page-subtitle">Vị trí & chỉ số sức khỏe các chi nhánh Phúc Long — Hà Nội</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot good"></span> Health ≥ 3</span>
+            <span class="legend-item"><span class="dot warning"></span> Health 2-3</span>
+            <span class="legend-item"><span class="dot danger"></span> Health < 2</span>
+          </div>
+        </div>
+        <div id="map-container" class="map-container" role="application" aria-label="Bản đồ chi nhánh Phúc Long Hà Nội" style="flex: 1;"></div>
+      </div>
     </div>
   `,
     styles: [`
-    .map-page { padding: var(--space-6); }
-
-    .page-header {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: var(--space-4);
-    }
-
-    .page-title { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-text); letter-spacing: -0.03em; }
-    .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-base); margin-top: var(--space-1); }
+    .page-title { font-size: var(--font-size-2xl); font-weight: 800; color: var(--pl-dark-green); letter-spacing: -0.03em; }
 
     .legend {
       display: flex; gap: 16px; align-items: center;
