@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -61,6 +64,20 @@ import { ApiService } from '../../services/api.service';
           <span class="stat-number">{{ overview?.responseRate }}%</span>
           <span class="stat-label">Tỷ lệ phản hồi</span>
         </div>
+      </div>
+
+      <!-- Negative Rate Trend Chart -->
+      <div class="section">
+        <h3 class="section-title">📈 Xu hướng tỷ lệ tiêu cực theo tháng</h3>
+        <div class="chart-container" *ngIf="trendData.length > 0; else emptyChart">
+          <canvas #trendCanvas></canvas>
+        </div>
+        <ng-template #emptyChart>
+          <div class="empty-state">
+            <span class="empty-icon">📊</span>
+            <p>Chưa có dữ liệu xu hướng. Vui lòng kiểm tra kết nối API.</p>
+          </div>
+        </ng-template>
       </div>
 
       <!-- Star Distribution -->
@@ -179,6 +196,28 @@ import { ApiService } from '../../services/api.service';
 
     .section-title { font-size: 18px; font-weight: 600; color: #d4d4d8; margin-bottom: 16px; }
 
+    /* Trend Chart */
+    .chart-container {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+      height: 320px;
+    }
+
+    .empty-state {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 48px;
+      text-align: center;
+      color: #71717a;
+    }
+
+    .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    /* Star Distribution */
     .distribution-bars {
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.04);
@@ -200,6 +239,7 @@ import { ApiService } from '../../services/api.service';
     .bar-negative { background: linear-gradient(90deg, #ef4444, #dc2626); }
     .bar-count { width: 60px; text-align: right; font-size: 13px; color: #a1a1aa; }
 
+    /* Branch Ranking */
     .branch-list {
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.04);
@@ -231,9 +271,14 @@ import { ApiService } from '../../services/api.service';
   `],
 })
 export class DashboardComponent implements OnInit {
+  @ViewChild('trendCanvas') trendCanvas!: ElementRef<HTMLCanvasElement>;
+
   overview: any = null;
   distribution: any[] = [];
   branches: any = null;
+  trendData: any[] = [];
+
+  private trendChart: Chart | null = null;
 
   constructor(private api: ApiService) { }
 
@@ -241,11 +286,119 @@ export class DashboardComponent implements OnInit {
     this.api.getOverview().subscribe(data => this.overview = data);
     this.api.getDistribution().subscribe(data => this.distribution = data);
     this.api.getBranches().subscribe(data => this.branches = data);
+    this.api.getTrends().subscribe(data => {
+      this.trendData = data || [];
+      // Wait for NgIf to render the canvas
+      setTimeout(() => this.renderTrendChart(), 100);
+    });
   }
 
   getBarWidth(count: number): number {
     if (!this.distribution.length) return 0;
     const max = Math.max(...this.distribution.map((d: any) => d.count));
     return (count / max) * 100;
+  }
+
+  private renderTrendChart() {
+    if (!this.trendCanvas || !this.trendData.length) return;
+
+    const ctx = this.trendCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    // Destroy previous chart if exists
+    if (this.trendChart) {
+      this.trendChart.destroy();
+    }
+
+    const labels = this.trendData.map((t: any) => t.period);
+    const negativeRates = this.trendData.map((t: any) => t.negativeRate);
+
+    // Create gradient fill
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(239, 68, 68, 0.25)');
+    gradient.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
+
+    this.trendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Tỷ lệ tiêu cực (%)',
+          data: negativeRates,
+          borderColor: '#ef4444',
+          backgroundColor: gradient,
+          borderWidth: 2,
+          pointRadius: 2,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#ef4444',
+          pointHoverBackgroundColor: '#fca5a5',
+          fill: true,
+          tension: 0.3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: '#a1a1aa',
+              font: { size: 12 },
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(24, 24, 27, 0.9)',
+            titleColor: '#f4f4f5',
+            bodyColor: '#d4d4d8',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: (context) => {
+                const idx = context.dataIndex;
+                const trend = this.trendData[idx];
+                return [
+                  `Tỷ lệ tiêu cực: ${trend.negativeRate}%`,
+                  `Tiêu cực: ${trend.negative} / ${trend.total} đánh giá`,
+                  `Sao TB: ${trend.avgStars}`,
+                ];
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#71717a',
+              font: { size: 10 },
+              maxRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 20,
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.03)',
+            },
+          },
+          y: {
+            min: 0,
+            max: 100,
+            ticks: {
+              color: '#71717a',
+              font: { size: 11 },
+              callback: (value) => value + '%',
+              stepSize: 20,
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.05)',
+            },
+          },
+        },
+      },
+    });
   }
 }
