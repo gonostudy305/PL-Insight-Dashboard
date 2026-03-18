@@ -11,51 +11,55 @@ import { ApiService } from '../../services/api.service';
     <div class="alerts-page">
       <div class="header-row">
         <div>
-          <h2 class="page-title">🚨 Smart Alert System</h2>
+          <h2 class="page-title">Smart Alert System</h2>
           <p class="page-subtitle">Cảnh báo thông minh & quản lý vòng đời xử lý</p>
         </div>
         <button class="scan-btn" (click)="runTriggerScan()" [disabled]="scanning">
-          {{ scanning ? '⏳ Scanning...' : '🔍 Trigger Scan' }}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+          {{ scanning ? 'Scanning...' : 'Trigger Scan' }}
         </button>
       </div>
 
       <!-- Scan Result Banner -->
       <div class="scan-banner" *ngIf="scanResult">
-        <span>✅ Tạo mới: <strong>{{ scanResult.created }}</strong></span>
-        <span>⏭️ Bỏ qua (cooldown): {{ scanResult.skipped }}</span>
-        <button class="close-banner" (click)="scanResult = null">✕</button>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Tạo mới: <strong>{{ scanResult.created }}</strong></span>
+        <span>Bỏ qua (cooldown): {{ scanResult.skipped }}</span>
+        <button class="close-banner" (click)="scanResult = null">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
       </div>
 
       <!-- Tabs -->
       <div class="tabs">
         <button class="tab" [class.active]="activeTab === 'queue'" (click)="activeTab = 'queue'">
-          📋 Hàng đợi ưu tiên
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
+          Hàng đợi ưu tiên
         </button>
         <button class="tab" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'; loadHistory()">
-          📜 Lịch sử cảnh báo
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+          Lịch sử cảnh báo
           <span class="tab-badge" *ngIf="statusCounts.new > 0">{{ statusCounts.new }}</span>
         </button>
       </div>
 
       <!-- Tab: Queue -->
       <div *ngIf="activeTab === 'queue'">
-        <!-- Alert Summary -->
         <div class="alert-summary">
           <div class="summary-item high">
             <span class="summary-count">{{ summary.high }}</span>
-            <span class="summary-label">🔴 Nghiêm trọng</span>
+            <span class="summary-label">Nghiêm trọng</span>
           </div>
           <div class="summary-item standard">
             <span class="summary-count">{{ summary.standard }}</span>
-            <span class="summary-label">🟡 Tiêu chuẩn</span>
+            <span class="summary-label">Tiêu chuẩn</span>
           </div>
           <div class="summary-item monitoring">
             <span class="summary-count">{{ summary.monitoring }}</span>
-            <span class="summary-label">🔵 Theo dõi</span>
+            <span class="summary-label">Theo dõi</span>
           </div>
         </div>
 
-        <!-- Alert List -->
         <div class="alert-list">
           @for (alert of alerts; track alert.reviewId) {
             <div class="alert-card" [class]="'priority-' + alert.priorityLevel">
@@ -64,9 +68,14 @@ import { ApiService } from '../../services/api.service';
                 <div class="alert-header">
                   <span class="priority-badge">{{ alert.priorityLabel }}</span>
                   <span class="alert-stars">
-                    @for (s of getStarsArray(alert.stars); track s) { ⭐ }
+                    @for (s of getStarsArray(alert.stars); track s) {
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    }
                   </span>
-                  <span class="alert-branch">📍 {{ alert.branchAddress }}</span>
+                  <span class="alert-branch">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ alert.branchAddress }}
+                  </span>
                 </div>
                 <p class="alert-text">{{ alert.text }}</p>
                 <div class="alert-tags">
@@ -75,8 +84,14 @@ import { ApiService } from '../../services/api.service';
                   }
                 </div>
                 <div class="alert-meta">
-                  <span>🕐 {{ alert.session }}</span>
-                  <span>📝 {{ alert.textLengthGroup }}</span>
+                  <span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ alert.session }}
+                  </span>
+                  <span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    {{ alert.textLengthGroup }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -86,13 +101,12 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Tab: History -->
       <div *ngIf="activeTab === 'history'">
-        <!-- Status Filter -->
         <div class="filter-row">
           <select [(ngModel)]="historyFilter" (change)="loadHistory()">
             <option value="">Tất cả trạng thái</option>
-            <option value="new">🔴 Mới</option>
-            <option value="acknowledged">🟡 Đã xác nhận</option>
-            <option value="resolved">🟢 Đã xử lý</option>
+            <option value="new">Mới</option>
+            <option value="acknowledged">Đã xác nhận</option>
+            <option value="resolved">Đã xử lý</option>
           </select>
           <div class="status-summary">
             <span class="mini-badge new-bg">{{ statusCounts.new }} mới</span>
@@ -111,12 +125,15 @@ import { ApiService } from '../../services/api.service';
                   [class.dot-res]="h.status === 'resolved'">
                 </span>
                 <div>
-                  <div class="history-branch">📍 {{ h.branchAddress }}</div>
+                  <div class="history-branch">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ h.branchAddress }}
+                  </div>
                   <div class="history-rule">{{ h.triggerRule }} — {{ h.triggerCount }} reviews</div>
                   <div class="history-time">{{ formatTime(h.createdAt) }}</div>
                   <div class="history-timeline" *ngIf="h.acknowledgedAt || h.resolvedAt">
-                    <span *ngIf="h.acknowledgedAt">✅ Xác nhận: {{ formatTime(h.acknowledgedAt) }}</span>
-                    <span *ngIf="h.resolvedAt">🏁 Hoàn tất: {{ formatTime(h.resolvedAt) }}</span>
+                    <span *ngIf="h.acknowledgedAt">Xác nhận: {{ formatTime(h.acknowledgedAt) }}</span>
+                    <span *ngIf="h.resolvedAt">Hoàn tất: {{ formatTime(h.resolvedAt) }}</span>
                   </div>
                 </div>
               </div>
@@ -124,21 +141,26 @@ import { ApiService } from '../../services/api.service';
                 <button class="action-btn ack-btn"
                   *ngIf="h.status === 'new'"
                   (click)="updateStatus(h.alertId, 'acknowledged')">
-                  ✅ Xác nhận
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Xác nhận
                 </button>
                 <button class="action-btn resolve-btn"
                   *ngIf="h.status === 'acknowledged'"
                   (click)="updateStatus(h.alertId, 'resolved')">
-                  🏁 Hoàn tất
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  Hoàn tất
                 </button>
-                <span class="status-label" *ngIf="h.status === 'resolved'">✔ Đã xử lý</span>
+                <span class="status-label" *ngIf="h.status === 'resolved'">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Đã xử lý
+                </span>
               </div>
             </div>
           }
         </div>
         <ng-template #noHistory>
           <div class="empty-state">
-            <span class="empty-icon">📜</span>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
             <p>Chưa có cảnh báo nào.</p>
             <p>Bấm <strong>Trigger Scan</strong> để quét cảnh báo mới.</p>
           </div>
@@ -147,144 +169,396 @@ import { ApiService } from '../../services/api.service';
     </div>
   `,
   styles: [`
-    .alerts-page { max-width: 1000px; }
+    .alerts-page {
+      max-width: 1000px;
+      animation: fadeInUp 0.4s ease-out;
+    }
 
     .header-row {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-6);
     }
+
     .page-title {
-      font-size: 28px; font-weight: 700;
-      background: linear-gradient(135deg, #f4f4f5, #a1a1aa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.03em;
     }
-    .page-subtitle { color: #71717a; font-size: 14px; margin-top: 4px; }
+
+    .page-subtitle {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-base);
+      margin-top: var(--space-1);
+    }
 
     .scan-btn {
-      padding: 10px 20px; border-radius: 10px; border: none;
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white; font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--color-primary);
+      color: white;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
     }
-    .scan-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,158,11,0.3); }
+
+    .scan-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(12, 113, 61, 0.3);
+    }
+
     .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .scan-banner {
-      display: flex; align-items: center; gap: 20px;
-      padding: 12px 20px; border-radius: 10px; margin-bottom: 16px;
-      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);
-      color: #d4d4d8; font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+      background: var(--color-success-bg);
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      color: var(--color-text);
+      font-size: var(--font-size-sm);
     }
-    .close-banner { margin-left: auto; background: none; border: none; color: #71717a; cursor: pointer; font-size: 16px; }
+
+    .close-banner {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex;
+    }
 
     /* Tabs */
     .tabs {
-      display: flex; gap: 4px; margin-bottom: 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0;
+      display: flex;
+      gap: 4px;
+      margin-bottom: var(--space-6);
+      border-bottom: 2px solid var(--color-border);
     }
+
     .tab {
-      padding: 10px 20px; border: none; background: transparent;
-      color: #71717a; font-size: 14px; font-weight: 500; cursor: pointer;
-      border-bottom: 2px solid transparent; transition: all 0.2s;
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: var(--space-3) var(--space-5);
+      border: none;
+      background: transparent;
+      color: var(--color-text-muted);
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition-base);
     }
-    .tab:hover { color: #d4d4d8; }
-    .tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+
+    .tab:hover { color: var(--color-text); }
+
+    .tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: 600;
+    }
+
     .tab-badge {
-      background: #ef4444; color: white; font-size: 11px; font-weight: 700;
-      padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center;
+      background: var(--color-danger);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      min-width: 18px;
+      text-align: center;
     }
 
     /* Queue Tab */
     .alert-summary {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 16px; margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
     }
+
     .summary-item {
-      text-align: center; padding: 18px; border-radius: 12px;
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+      padding: var(--space-5);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      position: relative;
+      overflow: hidden;
     }
-    .summary-item.high { border-bottom: 3px solid #ef4444; }
-    .summary-item.standard { border-bottom: 3px solid #f59e0b; }
-    .summary-item.monitoring { border-bottom: 3px solid #3b82f6; }
-    .summary-count { font-size: 30px; font-weight: 700; display: block; color: #f4f4f5; }
-    .summary-label { font-size: 12px; color: #71717a; }
+
+    .summary-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .summary-item.high::after { background: var(--color-danger); }
+    .summary-item.standard::after { background: var(--color-warning); }
+    .summary-item.monitoring::after { background: var(--color-info); }
+
+    .summary-count {
+      font-size: 30px;
+      font-weight: 800;
+      display: block;
+      color: var(--color-text);
+    }
+
+    .summary-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .alert-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
 
     .alert-card {
-      display: flex; margin-bottom: 10px; border-radius: 12px; overflow: hidden;
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-      transition: transform 0.15s;
+      display: flex;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      transition: all var(--transition-base);
     }
-    .alert-card:hover { transform: translateX(4px); }
+
+    .alert-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateX(2px);
+    }
+
     .alert-priority-bar { width: 4px; flex-shrink: 0; }
-    .priority-1 .alert-priority-bar { background: #ef4444; }
-    .priority-2 .alert-priority-bar { background: #f59e0b; }
-    .priority-3 .alert-priority-bar { background: #3b82f6; }
-    .alert-body { padding: 14px 18px; flex: 1; }
-    .alert-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-    .priority-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .priority-1 .priority-badge { background: rgba(239,68,68,0.15); color: #ef4444; }
-    .priority-2 .priority-badge { background: rgba(245,158,11,0.15); color: #f59e0b; }
-    .priority-3 .priority-badge { background: rgba(59,130,246,0.15); color: #3b82f6; }
-    .alert-branch { font-size: 12px; color: #71717a; }
-    .alert-text { font-size: 13px; color: #d4d4d8; line-height: 1.5; margin-bottom: 8px; max-height: 60px; overflow: hidden; }
-    .alert-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
-    .risk-tag { background: rgba(239,68,68,0.08); color: #fca5a5; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
-    .alert-meta { display: flex; gap: 16px; font-size: 12px; color: #52525b; }
+    .priority-1 .alert-priority-bar { background: var(--color-danger); }
+    .priority-2 .alert-priority-bar { background: var(--color-warning); }
+    .priority-3 .alert-priority-bar { background: var(--color-info); }
+
+    .alert-body { padding: var(--space-4) var(--space-5); flex: 1; }
+
+    .alert-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .priority-badge {
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .priority-1 .priority-badge { background: var(--color-danger-bg); color: var(--color-danger); }
+    .priority-2 .priority-badge { background: var(--color-warning-bg); color: var(--color-warning); }
+    .priority-3 .priority-badge { background: var(--color-info-bg); color: var(--color-info); }
+
+    .alert-stars { display: flex; gap: 1px; }
+
+    .alert-branch {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .alert-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-text);
+      line-height: 1.6;
+      margin-bottom: var(--space-2);
+      max-height: 60px;
+      overflow: hidden;
+    }
+
+    .alert-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: var(--space-2);
+    }
+
+    .risk-tag {
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .alert-meta {
+      display: flex;
+      gap: var(--space-4);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+
+    .alert-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
     /* History Tab */
-    .filter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+
     .filter-row select {
-      padding: 8px 14px; border-radius: 8px; font-size: 13px;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      color: #d4d4d8; cursor: pointer;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      cursor: pointer;
     }
+
+    .filter-row select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
     .status-summary { display: flex; gap: 8px; margin-left: auto; }
-    .mini-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
-    .new-bg { background: rgba(239,68,68,0.1); color: #ef4444; }
-    .ack-bg { background: rgba(245,158,11,0.1); color: #f59e0b; }
-    .res-bg { background: rgba(34,197,94,0.1); color: #22c55e; }
 
-    .history-list { display: flex; flex-direction: column; gap: 10px; }
-    .history-card {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 20px; border-radius: 12px;
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-      transition: transform 0.15s;
+    .mini-badge {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
     }
-    .history-card:hover { transform: translateX(2px); }
-    .status-new { border-left: 3px solid #ef4444; }
-    .status-acknowledged { border-left: 3px solid #f59e0b; }
-    .status-resolved { border-left: 3px solid #22c55e; }
 
-    .history-left { display: flex; gap: 12px; align-items: flex-start; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-    .dot-new { background: #ef4444; }
-    .dot-ack { background: #f59e0b; }
-    .dot-res { background: #22c55e; }
+    .new-bg { background: var(--color-danger-bg); color: var(--color-danger); }
+    .ack-bg { background: var(--color-warning-bg); color: var(--color-warning); }
+    .res-bg { background: var(--color-success-bg); color: var(--color-success); }
 
-    .history-branch { font-size: 14px; font-weight: 500; color: #e4e4e7; margin-bottom: 3px; }
-    .history-rule { font-size: 12px; color: #a1a1aa; margin-bottom: 3px; }
-    .history-time { font-size: 12px; color: #52525b; }
-    .history-timeline { font-size: 11px; color: #71717a; margin-top: 4px; display: flex; gap: 12px; }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .history-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      transition: all var(--transition-base);
+    }
+
+    .history-card:hover {
+      box-shadow: var(--shadow-sm);
+      transform: translateX(2px);
+    }
+
+    .status-new { border-left: 3px solid var(--color-danger); }
+    .status-acknowledged { border-left: 3px solid var(--color-warning); }
+    .status-resolved { border-left: 3px solid var(--color-success); }
+
+    .history-left { display: flex; gap: var(--space-3); align-items: flex-start; }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .dot-new { background: var(--color-danger); }
+    .dot-ack { background: var(--color-warning); }
+    .dot-res { background: var(--color-success); }
+
+    .history-branch {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-rule { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 3px; }
+    .history-time { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+    .history-timeline {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+      display: flex;
+      gap: var(--space-3);
+    }
 
     .history-actions { display: flex; gap: 8px; align-items: center; }
+
     .action-btn {
-      padding: 6px 14px; border-radius: 8px; border: none; font-size: 12px;
-      font-weight: 600; cursor: pointer; transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      border: none;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
     }
-    .ack-btn { background: rgba(245,158,11,0.15); color: #f59e0b; }
-    .ack-btn:hover { background: rgba(245,158,11,0.25); }
-    .resolve-btn { background: rgba(34,197,94,0.15); color: #22c55e; }
-    .resolve-btn:hover { background: rgba(34,197,94,0.25); }
-    .status-label { font-size: 12px; color: #22c55e; font-weight: 500; }
+
+    .ack-btn { background: var(--color-warning-bg); color: var(--color-warning); }
+    .ack-btn:hover { background: rgba(217, 119, 6, 0.2); }
+
+    .resolve-btn { background: var(--color-success-bg); color: var(--color-success); }
+    .resolve-btn:hover { background: rgba(5, 150, 105, 0.2); }
+
+    .status-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-success);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
     .empty-state {
-      text-align: center; padding: 50px 20px; color: #71717a;
-      background: rgba(255,255,255,0.02); border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
+      text-align: center;
+      padding: var(--space-12) var(--space-6);
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
     }
-    .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; }
   `],
 })
 export class AlertsComponent implements OnInit {

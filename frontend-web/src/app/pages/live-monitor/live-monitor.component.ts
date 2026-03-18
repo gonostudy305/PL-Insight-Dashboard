@@ -11,33 +11,38 @@ import { ApiService } from '../../services/api.service';
     <div class="monitor">
       <div class="header-row">
         <div>
-          <h2 class="page-title">📡 Live Sentiment Monitor</h2>
+          <h2 class="page-title">Live Sentiment Monitor</h2>
           <p class="page-subtitle">Phân tích cảm xúc thời gian thực bằng PhoBERT</p>
         </div>
         <div class="header-actions">
           <button class="scan-btn" (click)="runScan()" [disabled]="scanning">
-            {{ scanning ? '⏳ Đang phân tích...' : '🔍 Scan Now' }}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            {{ scanning ? 'Đang phân tích...' : 'Scan Now' }}
           </button>
           <span class="poll-indicator" [class.active]="pollingActive">
-            {{ pollingActive ? '● Live' : '○ Paused' }}
+            <span class="pulse-dot" *ngIf="pollingActive"></span>
+            {{ pollingActive ? 'Live' : 'Paused' }}
           </span>
         </div>
       </div>
 
       <!-- Scan Result Banner -->
       <div class="scan-banner" *ngIf="lastScanResult">
-        <span>✅ Đã phân tích: <strong>{{ lastScanResult.analyzed }}</strong></span>
-        <span *ngIf="lastScanResult.failed > 0">⚠️ Lỗi: {{ lastScanResult.failed }}</span>
-        <span>📋 Chưa xử lý: {{ lastScanResult.remaining }}</span>
-        <button class="close-banner" (click)="lastScanResult = null">✕</button>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Đã phân tích: <strong>{{ lastScanResult.analyzed }}</strong></span>
+        <span *ngIf="lastScanResult.failed > 0" style="color: var(--color-danger);">Lỗi: {{ lastScanResult.failed }}</span>
+        <span>Chưa xử lý: {{ lastScanResult.remaining }}</span>
+        <button class="close-banner" (click)="lastScanResult = null">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
       </div>
 
       <!-- Filters -->
       <div class="filter-row">
         <select [(ngModel)]="filterSentiment" (change)="loadRecent()">
           <option value="">Tất cả cảm xúc</option>
-          <option value="positive">🟢 Tích cực</option>
-          <option value="negative">🔴 Tiêu cực</option>
+          <option value="positive">Tích cực</option>
+          <option value="negative">Tiêu cực</option>
         </select>
         <select [(ngModel)]="filterBranch" (change)="loadRecent()">
           <option value="">Tất cả chi nhánh</option>
@@ -60,8 +65,8 @@ import { ApiService } from '../../services/api.service';
                 [class.badge-positive]="review.aiSentimentSummary === 'Positive'"
                 [class.badge-negative]="review.aiSentimentSummary === 'Negative'"
                 [class.badge-mixed]="review.aiSentimentSummary === 'Mixed'">
-                {{ review.aiSentimentSummary === 'Positive' ? '🟢 Tích cực' :
-                   review.aiSentimentSummary === 'Negative' ? '🔴 Tiêu cực' : '🟡 Hỗn hợp' }}
+                {{ review.aiSentimentSummary === 'Positive' ? 'Tích cực' :
+                   review.aiSentimentSummary === 'Negative' ? 'Tiêu cực' : 'Hỗn hợp' }}
               </span>
               <span class="ai-label">{{ review.aiSentimentSummary }}</span>
               <span class="stars">{{ getStarDisplay(review.stars) }}</span>
@@ -83,11 +88,18 @@ import { ApiService } from '../../services/api.service';
                 </div>
                 <span class="conf-value">{{ (review.confidenceAvg * 100).toFixed(1) }}%</span>
               </div>
-              <span class="branch-tag">🏪 {{ review.branchAddress }}</span>
-              <span class="keywords-tag" *ngIf="review.keywords?.length">
-                🏷️ {{ review.keywords.join(', ') }}
+              <span class="branch-tag">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                {{ review.branchAddress }}
               </span>
-              <span class="translated-tag" *ngIf="review.isTranslated">🌐 Translated</span>
+              <span class="keywords-tag" *ngIf="review.keywords?.length">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+                {{ review.keywords.join(', ') }}
+              </span>
+              <span class="translated-tag" *ngIf="review.isTranslated">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Translated
+              </span>
             </div>
           </div>
         }
@@ -95,7 +107,7 @@ import { ApiService } from '../../services/api.service';
 
       <ng-template #emptyState>
         <div class="empty-state">
-          <span class="empty-icon">📡</span>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
           <p>Chưa có review nào được phân tích AI.</p>
           <p>Bấm <strong>Scan Now</strong> để bắt đầu phân tích.</p>
         </div>
@@ -103,121 +115,238 @@ import { ApiService } from '../../services/api.service';
     </div>
   `,
   styles: [`
-    .monitor { max-width: 1200px; }
+    .monitor {
+      max-width: 1200px;
+      animation: fadeInUp 0.4s ease-out;
+    }
 
     .header-row {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-6);
     }
 
     .page-title {
-      font-size: 28px; font-weight: 700;
-      background: linear-gradient(135deg, #f4f4f5, #a1a1aa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.03em;
     }
-    .page-subtitle { color: #71717a; font-size: 14px; margin-top: 4px; }
 
-    .header-actions { display: flex; align-items: center; gap: 16px; }
+    .page-subtitle {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-base);
+      margin-top: var(--space-1);
+    }
+
+    .header-actions { display: flex; align-items: center; gap: var(--space-4); }
 
     .scan-btn {
-      padding: 10px 20px; border-radius: 10px; border: none;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white; font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--color-primary);
+      color: white;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
     }
-    .scan-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(59,130,246,0.3); }
+
+    .scan-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(12, 113, 61, 0.3);
+    }
+
     .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .poll-indicator {
-      font-size: 13px; color: #71717a; padding: 6px 12px;
-      border-radius: 20px; background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .poll-indicator.active { color: #22c55e; border-color: rgba(34,197,94,0.3); }
+
+    .poll-indicator.active {
+      color: var(--color-success);
+      border-color: rgba(5, 150, 105, 0.3);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
 
     .scan-banner {
-      display: flex; align-items: center; gap: 20px;
-      padding: 12px 20px; border-radius: 10px; margin-bottom: 16px;
-      background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
-      color: #d4d4d8; font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+      background: var(--color-success-bg);
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      color: var(--color-text);
+      font-size: var(--font-size-sm);
     }
+
     .close-banner {
-      margin-left: auto; background: none; border: none;
-      color: #71717a; cursor: pointer; font-size: 16px;
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex;
     }
 
     .filter-row {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
-    }
-    .filter-row select {
-      padding: 8px 14px; border-radius: 8px; font-size: 13px;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      color: #d4d4d8; cursor: pointer;
-    }
-    .total-badge {
-      margin-left: auto; font-size: 13px; color: #71717a;
-      padding: 6px 12px; border-radius: 8px;
-      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
     }
 
-    .review-list { display: flex; flex-direction: column; gap: 12px; }
+    .filter-row select {
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      cursor: pointer;
+    }
+
+    .filter-row select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    .total-badge {
+      margin-left: auto;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+    }
+
+    .review-list { display: flex; flex-direction: column; gap: var(--space-3); }
 
     .review-card {
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px; padding: 18px 20px;
-      transition: transform 0.15s, box-shadow 0.15s;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5) var(--space-6);
+      transition: all var(--transition-base);
     }
-    .review-card:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-    .review-card.positive { border-left: 3px solid #22c55e; }
-    .review-card.negative { border-left: 3px solid #ef4444; }
-    .review-card.mixed { border-left: 3px solid #f59e0b; }
 
-    .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .review-card:hover {
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-1px);
+    }
+
+    .review-card.positive { border-left: 4px solid var(--color-success); }
+    .review-card.negative { border-left: 4px solid var(--color-danger); }
+    .review-card.mixed { border-left: 4px solid var(--color-warning); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      flex-wrap: wrap;
+    }
 
     .sentiment-badge {
-      padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
     }
-    .badge-positive { background: rgba(34,197,94,0.12); color: #22c55e; }
-    .badge-negative { background: rgba(239,68,68,0.12); color: #ef4444; }
-    .badge-mixed { background: rgba(245,158,11,0.12); color: #f59e0b; }
 
-    .ai-label { font-size: 12px; color: #a1a1aa; font-weight: 500; }
-    .stars { font-size: 13px; color: #f59e0b; }
-    .time { margin-left: auto; font-size: 12px; color: #52525b; }
+    .badge-positive { background: var(--color-success-bg); color: var(--color-success); }
+    .badge-negative { background: var(--color-danger-bg); color: var(--color-danger); }
+    .badge-mixed { background: var(--color-warning-bg); color: var(--color-warning); }
+
+    .ai-label { font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 500; }
+    .stars { font-size: var(--font-size-sm); color: var(--color-accent); }
+    .time { margin-left: auto; font-size: var(--font-size-xs); color: var(--color-text-muted); }
 
     .review-text {
-      font-size: 14px; line-height: 1.6; color: #d4d4d8;
-      margin-bottom: 12px; max-height: 80px; overflow: hidden;
+      font-size: var(--font-size-base);
+      line-height: 1.7;
+      color: var(--color-text);
+      margin-bottom: var(--space-3);
+      max-height: 80px;
+      overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .card-meta {
-      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
     }
 
     .confidence-wrap { display: flex; align-items: center; gap: 8px; }
-    .conf-label { font-size: 11px; color: #71717a; }
+    .conf-label { font-size: 11px; color: var(--color-text-muted); }
+
     .confidence-bar {
-      width: 80px; height: 6px; border-radius: 3px;
-      background: rgba(255,255,255,0.06); overflow: hidden;
+      width: 80px;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--color-bg);
+      overflow: hidden;
     }
+
     .confidence-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-    .high-conf { background: #22c55e; }
-    .mid-conf { background: #f59e0b; }
-    .low-conf { background: #ef4444; }
-    .conf-value { font-size: 12px; color: #a1a1aa; font-weight: 500; }
+    .high-conf { background: var(--color-success); }
+    .mid-conf { background: var(--color-warning); }
+    .low-conf { background: var(--color-danger); }
+    .conf-value { font-size: var(--font-size-xs); color: var(--color-text-secondary); font-weight: 600; }
 
     .branch-tag, .keywords-tag, .translated-tag {
-      font-size: 12px; color: #71717a; padding: 3px 8px;
-      border-radius: 5px; background: rgba(255,255,255,0.03);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      background: var(--color-bg);
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .empty-state {
-      text-align: center; padding: 60px 20px; color: #71717a;
-      background: rgba(255,255,255,0.02); border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
+      text-align: center;
+      padding: var(--space-12) var(--space-6);
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
     }
-    .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
   `],
 })
 export class LiveMonitorComponent implements OnInit, OnDestroy {
@@ -231,7 +360,7 @@ export class LiveMonitorComponent implements OnInit, OnDestroy {
   filterBranch = '';
 
   private pollTimer: any;
-  private readonly POLL_INTERVAL = 30000; // 30 seconds
+  private readonly POLL_INTERVAL = 30000;
 
   constructor(private api: ApiService) { }
 
@@ -292,7 +421,7 @@ export class LiveMonitorComponent implements OnInit, OnDestroy {
   }
 
   getStarDisplay(stars: number): string {
-    return '⭐'.repeat(stars);
+    return '★'.repeat(stars);
   }
 
   formatTime(date: string): string {

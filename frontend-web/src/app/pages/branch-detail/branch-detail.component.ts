@@ -6,16 +6,22 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 @Component({
-    selector: 'app-branch-detail',
-    standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
+  selector: 'app-branch-detail',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
     <div class="branch-detail" *ngIf="branch; else loading">
       <!-- Header -->
       <div class="header-row">
-        <a routerLink="/dashboard" class="back-link">← Quay lại</a>
+        <a routerLink="/dashboard" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Quay lại Dashboard
+        </a>
       </div>
-      <h2 class="branch-name">📍 {{ branch.branchAddress }}</h2>
+      <h2 class="branch-name">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ branch.branchAddress }}
+      </h2>
       <p class="branch-sub">{{ branch.district }} — {{ branch.placeId }}</p>
 
       <!-- KPI Cards -->
@@ -25,7 +31,10 @@ Chart.register(...registerables);
           <span class="kpi-label">Tổng review</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-value">⭐ {{ branch.avgStars }}</span>
+          <span class="kpi-value">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            {{ branch.avgStars }}
+          </span>
           <span class="kpi-label">Sao trung bình</span>
         </div>
         <div class="kpi-card" [class.risk]="branch.negativeRate > 30">
@@ -45,7 +54,12 @@ Chart.register(...registerables);
       <div class="grid-2">
         <!-- Monthly Trend -->
         <div class="card">
-          <h3 class="card-title">📉 Xu hướng theo tháng</h3>
+          <div class="card-header-inner">
+            <h3 class="card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+              Xu hướng theo tháng
+            </h3>
+          </div>
           <div class="chart-container">
             <canvas #trendCanvas></canvas>
           </div>
@@ -53,11 +67,16 @@ Chart.register(...registerables);
 
         <!-- Star Distribution -->
         <div class="card">
-          <h3 class="card-title">⭐ Phân bố sao</h3>
+          <div class="card-header-inner">
+            <h3 class="card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Phân bố sao
+            </h3>
+          </div>
           <div class="star-bars" *ngIf="branch.starDistribution">
             @for (star of [5,4,3,2,1]; track star) {
               <div class="star-row">
-                <span class="star-label">{{ star }} ⭐</span>
+                <span class="star-label">{{ star }} sao</span>
                 <div class="star-bar-bg">
                   <div class="star-bar-fill"
                     [style.width.%]="getStarPercent(star)"
@@ -74,8 +93,13 @@ Chart.register(...registerables);
 
         <!-- Top Issues -->
         <div class="card" *ngIf="branch.topIssues?.length > 0">
-          <h3 class="card-title">⚠️ Vấn đề phổ biến</h3>
-          <p class="card-desc">Từ {{ branch.negativeCount }} review tiêu cực</p>
+          <div class="card-header-inner">
+            <h3 class="card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+              Vấn đề phổ biến
+            </h3>
+            <span class="issue-count-label">Từ {{ branch.negativeCount }} review tiêu cực</span>
+          </div>
           <div class="issue-list">
             @for (issue of branch.topIssues; track issue.issue; let i = $index) {
               <div class="issue-row">
@@ -92,14 +116,21 @@ Chart.register(...registerables);
       </div>
 
       <!-- Recent Reviews -->
-      <div class="card full-width">
-        <h3 class="card-title">💬 Review gần đây</h3>
+      <div class="card full-width" style="margin-top: var(--space-5);">
+        <div class="card-header-inner">
+          <h3 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            Review gần đây
+          </h3>
+        </div>
         <div class="review-list" *ngIf="branch.recentReviews?.length > 0; else noReviews">
           @for (r of branch.recentReviews; track r.reviewId) {
             <div class="review-item" [class.neg]="r.label === 0" [class.pos]="r.label === 1">
               <div class="review-header">
                 <span class="review-stars">
-                  @for (s of getStarsArray(r.stars); track s) { ⭐ }
+                  @for (s of getStarsArray(r.stars); track s) {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  }
                 </span>
                 <span class="review-label"
                   [class.label-neg]="r.label === 0"
@@ -107,7 +138,8 @@ Chart.register(...registerables);
                   {{ r.label === 1 ? 'Tích cực' : 'Tiêu cực' }}
                 </span>
                 <span class="review-ai" *ngIf="r.aiSentimentSummary">
-                  🤖 {{ r.aiSentimentSummary }}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                  {{ r.aiSentimentSummary }}
                 </span>
                 <span class="review-date">{{ r.publishedAtDate | date:'dd/MM/yyyy' }}</span>
               </div>
@@ -123,170 +155,421 @@ Chart.register(...registerables);
 
     <ng-template #loading>
       <div class="loading-state">
-        <p>⏳ Đang tải dữ liệu chi nhánh...</p>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <p>Đang tải dữ liệu chi nhánh...</p>
       </div>
     </ng-template>
   `,
-    styles: [`
-    .branch-detail { max-width: 1200px; }
-
-    .header-row { margin-bottom: 8px; }
-    .back-link {
-      color: #71717a; font-size: 13px; text-decoration: none;
-      transition: color 0.2s;
+  styles: [`
+    .branch-detail {
+      max-width: 1200px;
+      animation: fadeInUp 0.4s ease-out;
     }
-    .back-link:hover { color: #f59e0b; }
+
+    .header-row { margin-bottom: var(--space-2); }
+
+    .back-link {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .back-link:hover { color: var(--color-primary); }
 
     .branch-name {
-      font-size: 26px; font-weight: 700;
-      background: linear-gradient(135deg, #f4f4f5, #a1a1aa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.03em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
     }
-    .branch-sub { color: #71717a; font-size: 13px; margin-bottom: 20px; }
+
+    .branch-sub {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      margin-bottom: var(--space-6);
+    }
 
     /* KPI Grid */
-    .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-    .kpi-card {
-      text-align: center; padding: 18px 12px; border-radius: 12px;
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
     }
-    .kpi-card.risk { border-bottom: 3px solid #ef4444; }
-    .kpi-card.good { border-bottom: 3px solid #22c55e; }
-    .kpi-value { font-size: 24px; font-weight: 700; color: #f4f4f5; display: block; }
-    .kpi-label { font-size: 12px; color: #71717a; }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .kpi-card {
+      text-align: center;
+      padding: var(--space-5) var(--space-3);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      transition: box-shadow var(--transition-base);
+    }
+
+    .kpi-card:hover { box-shadow: var(--shadow-sm); }
+    .kpi-card.risk { border-bottom: 3px solid var(--color-danger); }
+    .kpi-card.good { border-bottom: 3px solid var(--color-success); }
+
+    .kpi-value {
+      font-size: var(--font-size-xl);
+      font-weight: 800;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .kpi-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
 
     /* Grid */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
 
     .card {
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 14px; padding: 20px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
     }
-    .card.full-width { grid-column: 1 / -1; }
-    .card-title { font-size: 16px; font-weight: 600; color: #e4e4e7; margin-bottom: 14px; }
-    .card-desc { font-size: 12px; color: #71717a; margin-top: -8px; margin-bottom: 14px; }
 
-    .chart-container { height: 220px; position: relative; }
+    .card.full-width { grid-column: 1 / -1; }
+
+    .card-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .card-title {
+      font-size: var(--font-size-md);
+      font-weight: 700;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .issue-count-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+
+    .chart-container {
+      height: 220px;
+      position: relative;
+      padding: var(--space-4);
+    }
 
     /* Star Distribution */
-    .star-bars { display: flex; flex-direction: column; gap: 10px; }
-    .star-row { display: flex; align-items: center; gap: 10px; }
-    .star-label { width: 50px; font-size: 13px; color: #d4d4d8; text-align: right; }
-    .star-bar-bg { flex: 1; height: 20px; border-radius: 6px; background: rgba(255,255,255,0.04); overflow: hidden; }
-    .star-bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
-    .star-high { background: linear-gradient(90deg, #22c55e, #16a34a); }
-    .star-mid { background: linear-gradient(90deg, #f59e0b, #d97706); }
-    .star-low { background: linear-gradient(90deg, #ef4444, #dc2626); }
-    .star-count { min-width: 40px; font-size: 13px; color: #a1a1aa; font-weight: 600; }
+    .star-bars {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+    }
+
+    .star-row { display: flex; align-items: center; gap: var(--space-3); }
+
+    .star-label {
+      width: 50px;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .star-bar-bg {
+      flex: 1;
+      height: 22px;
+      border-radius: var(--radius-sm);
+      background: var(--color-bg);
+      overflow: hidden;
+    }
+
+    .star-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-sm);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .star-high { background: linear-gradient(90deg, var(--pl-green), var(--pl-green-light)); }
+    .star-mid { background: linear-gradient(90deg, var(--color-warning), #fbbf24); }
+    .star-low { background: linear-gradient(90deg, var(--color-danger), #f87171); }
+
+    .star-count {
+      min-width: 40px;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      font-weight: 700;
+    }
 
     /* Top Issues */
-    .issue-list { display: flex; flex-direction: column; gap: 10px; }
-    .issue-row { display: flex; align-items: center; gap: 10px; }
-    .issue-rank { font-size: 12px; color: #f59e0b; font-weight: 700; min-width: 24px; }
-    .issue-name { width: 80px; font-size: 13px; color: #d4d4d8; font-weight: 500; text-align: right; }
-    .issue-bar-bg { flex: 1; height: 18px; border-radius: 6px; background: rgba(255,255,255,0.04); overflow: hidden; }
-    .issue-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.5s ease; }
-    .issue-count { min-width: 30px; font-size: 13px; color: #a1a1aa; font-weight: 600; }
+    .issue-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+    }
+
+    .issue-row { display: flex; align-items: center; gap: var(--space-3); }
+
+    .issue-rank {
+      font-size: var(--font-size-xs);
+      color: var(--color-warning);
+      font-weight: 700;
+      min-width: 24px;
+    }
+
+    .issue-name {
+      width: 80px;
+      font-size: var(--font-size-sm);
+      color: var(--color-text);
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .issue-bar-bg {
+      flex: 1;
+      height: 20px;
+      border-radius: var(--radius-sm);
+      background: var(--color-bg);
+      overflow: hidden;
+    }
+
+    .issue-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(90deg, var(--color-danger), #fb923c);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .issue-count {
+      min-width: 30px;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      font-weight: 700;
+    }
 
     /* Review List */
-    .review-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; }
-    .review-item {
-      padding: 14px; border-radius: 10px;
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+    .review-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      max-height: 500px;
+      overflow-y: auto;
+      padding: var(--space-4) var(--space-5);
     }
-    .review-item.neg { border-left: 3px solid #ef4444; }
-    .review-item.pos { border-left: 3px solid #22c55e; }
-    .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-    .review-stars { font-size: 12px; }
-    .review-label { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
-    .label-pos { background: rgba(34,197,94,0.12); color: #22c55e; }
-    .label-neg { background: rgba(239,68,68,0.12); color: #ef4444; }
-    .review-ai { font-size: 11px; color: #71717a; }
-    .review-date { font-size: 11px; color: #52525b; margin-left: auto; }
-    .review-text { font-size: 13px; color: #d4d4d8; line-height: 1.5; max-height: 60px; overflow: hidden; }
 
-    .loading-state { text-align: center; padding: 60px; color: #71717a; }
-    .empty { color: #71717a; text-align: center; padding: 20px; }
+    .review-item {
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-light);
+      transition: all var(--transition-fast);
+    }
+
+    .review-item:hover { border-color: var(--color-border); }
+    .review-item.neg { border-left: 3px solid var(--color-danger); }
+    .review-item.pos { border-left: 3px solid var(--color-success); }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .review-stars { display: flex; gap: 1px; }
+
+    .review-label {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    .label-pos { background: var(--color-success-bg); color: var(--color-success); }
+    .label-neg { background: var(--color-danger-bg); color: var(--color-danger); }
+
+    .review-ai {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .review-date { font-size: 11px; color: var(--color-text-muted); margin-left: auto; }
+
+    .review-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-text);
+      line-height: 1.6;
+      max-height: 60px;
+      overflow: hidden;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: var(--space-12);
+      color: var(--color-text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .loading-state svg {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .empty {
+      color: var(--color-text-muted);
+      text-align: center;
+      padding: var(--space-6);
+    }
   `],
 })
 export class BranchDetailComponent implements OnInit, AfterViewInit {
-    @ViewChild('trendCanvas') trendCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('trendCanvas') trendCanvas!: ElementRef<HTMLCanvasElement>;
 
-    branch: any = null;
-    private trendChart: Chart | null = null;
-    private maxStars = 0;
-    private maxIssues = 0;
+  branch: any = null;
+  private trendChart: Chart | null = null;
+  private maxStars = 0;
+  private maxIssues = 0;
 
-    constructor(private api: ApiService, private route: ActivatedRoute) { }
+  constructor(private api: ApiService, private route: ActivatedRoute) { }
 
-    ngOnInit() {
-        this.route.paramMap.subscribe(params => {
-            const placeId = params.get('placeId');
-            if (placeId) this.loadBranch(placeId);
-        });
-    }
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+      const placeId = params.get('placeId');
+      if (placeId) this.loadBranch(placeId);
+    });
+  }
 
-    ngAfterViewInit() { }
+  ngAfterViewInit() { }
 
-    loadBranch(placeId: string) {
-        this.api.getBranchDetail(placeId).subscribe({
-            next: data => {
-                this.branch = data;
-                this.maxStars = Math.max(
-                    ...Object.values(data.starDistribution || {}).map((v: any) => v as number), 1
-                );
-                this.maxIssues = Math.max(
-                    ...(data.topIssues || []).map((i: any) => i.count), 1
-                );
-                setTimeout(() => this.renderTrendChart(), 100);
-            },
-            error: err => console.error('Branch load error:', err),
-        });
-    }
+  loadBranch(placeId: string) {
+    this.api.getBranchDetail(placeId).subscribe({
+      next: data => {
+        this.branch = data;
+        this.maxStars = Math.max(
+          ...Object.values(data.starDistribution || {}).map((v: any) => v as number), 1
+        );
+        this.maxIssues = Math.max(
+          ...(data.topIssues || []).map((i: any) => i.count), 1
+        );
+        setTimeout(() => this.renderTrendChart(), 100);
+      },
+      error: err => console.error('Branch load error:', err),
+    });
+  }
 
-    getStarPercent(star: number): number {
-        return ((this.branch?.starDistribution?.[star] || 0) / this.maxStars) * 100;
-    }
+  getStarPercent(star: number): number {
+    return ((this.branch?.starDistribution?.[star] || 0) / this.maxStars) * 100;
+  }
 
-    getIssuePercent(count: number): number {
-        return (count / this.maxIssues) * 100;
-    }
+  getIssuePercent(count: number): number {
+    return (count / this.maxIssues) * 100;
+  }
 
-    getStarsArray(n: number): number[] { return Array(n).fill(0); }
+  getStarsArray(n: number): number[] { return Array(n).fill(0); }
 
-    renderTrendChart() {
-        if (!this.trendCanvas?.nativeElement || !this.branch?.monthlyTrend?.length) return;
-        if (this.trendChart) this.trendChart.destroy();
+  renderTrendChart() {
+    if (!this.trendCanvas?.nativeElement || !this.branch?.monthlyTrend?.length) return;
+    if (this.trendChart) this.trendChart.destroy();
 
-        const labels = this.branch.monthlyTrend.map((t: any) => t.period);
-        const negRateData = this.branch.monthlyTrend.map((t: any) => t.negativeRate);
-        const ctx = this.trendCanvas.nativeElement.getContext('2d')!;
-        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(239,68,68,0.2)');
-        gradient.addColorStop(1, 'transparent');
+    const labels = this.branch.monthlyTrend.map((t: any) => t.period);
+    const negRateData = this.branch.monthlyTrend.map((t: any) => t.negativeRate);
+    const ctx = this.trendCanvas.nativeElement.getContext('2d')!;
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(220, 38, 38, 0.15)');
+    gradient.addColorStop(1, 'transparent');
 
-        this.trendChart = new Chart(this.trendCanvas.nativeElement, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Tỷ lệ tiêu cực (%)',
-                    data: negRateData,
-                    borderColor: '#ef4444',
-                    backgroundColor: gradient,
-                    borderWidth: 2, pointRadius: 1.5, tension: 0.3, fill: true,
-                }],
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#a1a1aa' } } },
-                scales: {
-                    x: { ticks: { color: '#52525b', maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.03)' } },
-                    y: { ticks: { color: '#52525b', callback: v => `${v}%` }, grid: { color: 'rgba(255,255,255,0.03)' } },
-                },
-            },
-        });
-    }
+    this.trendChart = new Chart(this.trendCanvas.nativeElement, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Tỷ lệ tiêu cực (%)',
+          data: negRateData,
+          borderColor: '#DC2626',
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#DC2626',
+          pointBorderWidth: 2,
+          tension: 0.4,
+          fill: true,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#475569',
+              font: { size: 12, weight: '500' as any },
+              usePointStyle: true,
+              pointStyle: 'circle',
+            }
+          },
+          tooltip: {
+            backgroundColor: '#fff',
+            titleColor: '#0F172A',
+            bodyColor: '#475569',
+            borderColor: '#E2E8F0',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 10,
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: '#94A3B8', maxTicksLimit: 8 },
+            grid: { color: '#F1F5F9' },
+          },
+          y: {
+            ticks: { color: '#94A3B8', callback: v => `${v}%` },
+            grid: { color: '#F1F5F9' },
+          },
+        },
+      },
+    });
+  }
 }
