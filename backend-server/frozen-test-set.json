@@ -1,0 +1,434 @@
+{
+  "metadata": {
+    "generatedAt": "2026-03-18T04:47:45.120Z",
+    "totalSamples": 50,
+    "categories": {
+      "positive": 12,
+      "negative": 12,
+      "empty": 5,
+      "very_short": 5,
+      "1_star_severe": 5,
+      "weekend_negative_long": 2,
+      "peak_hour_negative": 1,
+      "no_diacritics": 2,
+      "english": 2,
+      "sarcastic": 2,
+      "mixed": 2
+    }
+  },
+  "samples": [
+    {
+      "category": "positive",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURKbDl1RkZBEAE",
+      "text": "Phuc Long Coffee & Tea is, without a doubt, one of my favorite coffee shop chains, and I have frequented numerous outlets of this cherished brand. During my recent visits to their branch in Hanoi's Old Quarter, I was once again reminded of why Phuc Long holds a special place in my heart. The delightful array of beverages, skilled baristas, friendly service, and refreshing ambiance all contributed to an exceptional experience.\n\nOne of the standout features of Phuc Long is the diverse selection of beverages available. From their signature coffee and tea blends to refreshing fruit drinks, the menu caters to a wide range of preferences, ensuring there's something for everyone. Each drink is expertly crafted, boasting rich flavors that never fail to please the palate.\n\nThe friendly and professional staff at Phuc Long are undoubtedly an asset to the brand. From the moment I entered the establishment, I was warmly welcomed and attended to promptly. The baristas' expertise in their craft was evident in the meticulous preparation of each beverage. They were also attentive to customer preferences, ensuring personalized and enjoyable experiences.\n\nThe ambiance of the coffee shop is simply inviting. The cool and clean interior provides a comfortable retreat from the bustling streets of Hanoi's Old Quarter. Whether you're seeking a quiet spot to work or a place to catch up with friends, Phuc Long offers a serene and cozy environment that encourages relaxation and enjoyment.\n\nMoreover, the coffee shop's location is highly convenient, making it easy to find within the bustling streets of the Old Quarter. Its accessibility adds to the overall appeal, making it a favored destination for both locals and tourists alike.\n\nWith each visit, Phuc Long continues to exceed my expectations, and I am certain to return to this delightful coffee shop time and time again. The harmonious blend of a diverse menu, skilled baristas, welcoming atmosphere, and strategic location make Phuc Long Coffee & Tea an absolute must-visit for anyone seeking an outstanding coffee shop experience in Hanoi. A solid 5 out of 5, I wholeheartedly recommend Phuc Long Coffee & Tea to coffee enthusiasts and tea aficionados alike.",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 2214
+    },
+    {
+      "category": "positive",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2pWaU1DMDBVSGhuUkhKeVNsQjFaMFZWZEdaT1EwRRAB",
+      "text": "Phúc Long Lê Văn Lương là một trong những quán mình khá thích khi cần tìm chỗ ngồi làm việc hoặc học nhóm vì khá gần chỗ làm.\n\nMình ghé quán nhiều lần và lần nào cũng có cảm giác dễ chịu, đủ yên tĩnh để tập trung mà vẫn có năng lượng đặc trưng của Phúc Long.\n\n- Không gian ở đây rộng rãi, bố trí thoáng, có nhiều loại bàn ghế khác nhau – từ bàn thấp ngồi thư giãn đến bàn cao dành cho dân văn phòng hoặc sinh viên mang laptop ra làm việc. Mình đặc biệt thích khu bàn dài kiểu coworking, vừa có ổ cắm điện sẵn vừa đủ sáng, nhìn rất chuyên nghiệp. Vào buổi sáng hay đầu giờ chiều thì quán khá yên, còn tầm chiều muộn trở đi thường đông hơn, nhưng không bị ồn ào khó chịu.\n\n- Đồ uống thì vẫn chuẩn vị Phúc Long – trà đậm, thơm, uống một ngụm là tỉnh ngay. Ai quen uống nhạt chắc sẽ thấy hơi mạnh, nhưng mình thấy đó lại là điểm cộng nếu bạn cần “nạp năng lượng” cho buổi làm việc hoặc học dài. Mỗi lần gọi ly Trà sữa Phúc Long hoặc Trà olong sữa là gần như tỉnh cả buổi chiều luôn 😆. Tuy nhiên, bạn nào dễ mất ngủ thì nên tránh uống muộn, vì lượng caffeine khá cao.\n\n- Không khí trong quán dễ chịu, ánh sáng tự nhiên nhiều, nhạc bật vừa phải, đủ để tạo cảm giác thoải mái mà không làm mất tập trung. Quán có nhiều khách ra vào, chủ yếu là dân văn phòng và sinh viên, nên vibe khá “chăm chỉ” — nhìn quanh ai cũng đang gõ máy tính hay trao đổi công việc.\n\n- Chỗ để xe thì tiện, ngay trước cửa quán, có bảo vệ trông cẩn thận nên mình cũng yên tâm. Đi vào giờ cao điểm thì hơi đông chút, nhưng nhân viên hướng dẫn rất nhanh và gọn.\n\nTổng thể, Phúc Long Lê Văn Lương là địa điểm lý tưởng nếu bạn cần tìm một nơi làm việc, học tập hoặc đơn giản chỉ muốn ngồi thư giãn với ly trà ngon. Quán đáp ứng tốt cả về không gian, đồ uống lẫn dịch vụ. Mình đánh giá cao sự ổn định của Phúc Long – đi chi nhánh nào cũng thấy sạch sẽ, chuyên nghiệp và giữ được chất riêng. Chắc chắn mình sẽ còn quay lại nhiều lần nữa ☕️🌿",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 1899
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUNZbHBYdGl3RRAB",
+      "text": "Đây là lần đầu tiên mình uống Phúc Long nên cảm thấy khá bất ngờ vì vị khá đậm ( mặc dù đã nghe là nổi tiếng đậm trà từ trước ) .\nKhông gian : Khá nhỏ , nằm vỏn vẹn ở một góc của toà chung cư, hôm mình đi khá đông người nên cảm giác hơi bí và nóng dù có bật điều hoà( 4 cái ) . Bàn ghế cũng khá sạch sẽ phù hợp cho nhiều nhóm người tuy nhiên mình thấy bàn nó cứ nhỏ nhỏ sao ấy. Nhà vệ sinh thoáng và thơm nhưng lại bố trí gần chỗ khách uống nước hơi kì ☺️☺️☺️.\n- Dịch vụ : mình thấy ra đồ rất nhanh nhưng chị nhân viên cảm giác không mấy cảm tình lắm ( dù phục vụ vẫn ổn ) nhưng cứ hơi kiểu nhanh nhanh chóng chóng làm gì ý . Có quầy bày các loại trà để phục vụ khách có nhu cầu.\n- Đồ uống : Menu khá đa dạng , chủ yếu là trà và trà sữa . Mình có gọi trà sữa lài và trà sữa Phúc Long ( bestseller ) , cả hai loại đều đậm trà , đậm đến nỗi uống có hậu vị hơi chát và đắng ( ý là vẫn bùi béo) chứ không đến nỗi như uống nước chè. Trà sữa lài thơm nhưng không mấy nổi bật , trà sữa Phúc Long ngon hơi lài với béo vị bột sữa ( hình như dùng trà ô long ).\n=> Trải nghiệm ổn , nói chung khá ổn vì mình apply coupon nên rẻ ổn (55k hai cốc size L ) còn bình thường 55k 1 cốc nhé mn. Ở dưới là menu cho mọi người tham khảo . Mà nhà vệ sinh có cái cửa hơi kì ... không biết cho thoáng hay sao.",
+      "stars": 4,
+      "expectedLabel": 1,
+      "textLength": 1283
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNmODZTUzVnRRAB",
+      "text": "Quán trà sữa Phúc Long tại Hàng Điếu là một điểm đến lý tưởng cho những ai yêu thích trà sữa và không gian thư giãn. Với vị trí nằm ở trung tâm, quán dễ dàng thu hút khách hàng bởi không gian thoáng đãng và view nhìn ra phố xá nhộn nhịp, tạo cảm giác dễ chịu cho những buổi trò chuyện cùng bạn bè.\n\nĐiểm cộng đầu tiên của quán là tốc độ phục vụ. Đồ uống được làm nhanh chóng, giúp khách hàng không phải chờ đợi lâu. Tuy nhiên, một điều mà mình cảm thấy chưa thực sự hài lòng là hương vị trà trong trà sữa. Mặc dù quán nổi tiếng với các loại trà, nhưng mình thấy vị trà trong trà sữa ở đây hơi nhạt, chưa đủ đậm đà như mong đợi. Có lẽ quán nên cân nhắc điều chỉnh tỷ lệ trà và sữa để mang lại trải nghiệm tốt hơn cho khách hàng.\n\nBên cạnh đó, bánh ăn kèm tại quán lại là một điểm sáng. Các loại bánh hấp dẫn, tươi ngon và phù hợp để thưởng thức cùng trà sữa. Mình đặc biệt thích bánh tiramisu, với vị ngọt vừa phải và lớp kem mềm mịn.\n\nTổng thể, quán trà sữa Phúc Long ở Hàng Điếu mang đến một trải nghiệm khá tốt với không gian đẹp, phục vụ nhanh và các món bánh ăn kèm ngon miệng. Mặc dù có một số điểm cần cải thiện về hương vị trà, nhưng mình vẫn đánh giá quán 8 điểm cho những nỗ lực và chất lượng mà quán mang lại. Rất đáng để ghé thăm!",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 1241
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNac2ZLU0Z3EAE",
+      "text": "Đã từng nhiều lần đến Phúc Long - Văn Quán và gửi lại mọi người đánh giá về quán cà phê này.\n- Không gian: Không gian tại Phúc Long nằm ở tầng 1 của toà Skyline, không gian không quá rộng. Tại Phúc Long có 2 bàn rất dài, có thể ngồi tại đây khi đi một mình và sử dụng Laptop, học bài và có đủ ổ điện cho những bài dài này. Ngoài ra ghế ngồi tại đây cũng khá thoải mái và êm. Không gian có rất nhiều cây xanh, cây xanh ở khắp mọi nơi, thùng rác tại Phúc Long có phân loại rác.\n- Đồ uống: đồ uống tại Phúc Long tương đối ổn, một số người nói rằng đồ uống dở hơn ngày xưa, nhưng cá nhân tớ đánh giá món của tớ uống: Trà mãng cầu - Tương đối ngon - 8/10.\n- Giá cả: Giá một cốc đồ uống tại thời điểm tớ review là: 50.000đ/cốc, giá tương đương với các quán cà phê khác cùng phân khúc trong khu vực.\n- Chỗ để xe: Có thể đỗ xe ô tô hoặc xe máy tại quán cà phê mà không gặp bất cứ vấn đề gì, có bảo vệ trông xe miễn phí.\n- Note: Quán có một không gian ngoài trời có thể ngồi để tận hưởng không khí cũng như hút thuốc ở phía ngoài.\n\nNói chung trải nghiệm tại Phúc Long là một trải nghiệm ổn, sẽ quay trở lại trong những lần tiếp theo.",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 1124
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNzamFmSzBBRRAB",
+      "text": "Hai lần đến mua trà và cả hai lần đều khá đông dù không phải giờ nghỉ thông thường. Có lẽ do nằm ở quận trung tâm, đường lớn, ngay tầng 1 và trong trung tâm thương mại nên rất hút khách, chủ yếu là dân văn phòng. Về giá mình thấy ổn, không đắt tiền thương hiệu. Chất lượng thì đỉnh, thực sự cạnh tranh với bất kỳ thương hiệu trà nào khác. Freeship cho đơn từ 5 đồ trở lên và khoảng cách tối đa 3km.\nNgoài đồ uống các cửa hàng cũng phục vụ thêm bánh ngọt, tráng miệng và bày bán các loại trà khô.\nTuy nhiên nếu không làm việc tại tòa TNR này thì đến mua khá phiền vì không có chỗ gửi xe (phải gửi 5k ở HV TTN đối diện hoặc xuống hẳn hầm hoặc đánh liều vứt ở vỉa hè), thường phải xếp hàng chờ lâu để order và lấy đồ.\n2 lần mình đến thì đều thấy nhân viên ổn, lịch sự tuy nhiên chưa chuyên nghiệp lắm. Một số nhân viên còn không nắm rõ được danh sách đồ uống, loại nào có nóng hay không, các chương trình giảm giá, combo - khiến việc order khá mất thời gian.\n1 điểm nữa mong quán cải thiện là sử dụng cốc sứ với những đơn dùng tại chỗ, giảm thiểu rác thải dùng một lần.",
+      "stars": 4,
+      "expectedLabel": 1,
+      "textLength": 1066
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURCbFBuaDRnRRAB",
+      "text": "- Về Cơ sở vật chất:\nKhông gian quán rộng rãi có nhiều góc ngồi khác nhau cho cặp đôi, nhóm bạn hay gia đình, có cả góc bàn có ổ cắm sạc cho các bạn nào muốn làm việc.\nĐiều hòa dường như chạy theo trung tâm thương mại nên ngày hè hơi nóng, mùa đông thì ổn hơn.\nNhà vệ sinh hơi xa nên nếu ngồi lâu hay có nhu cầu bất chợt thì hơi bất tiện.\n\n- Về Chất lượng đồ uống:\nDo là mô hình cửa hàng full size nên đầy đủ các món trà - cà phê - nước ép - bánh ăn uống của Phúc Long, kể cả các món seasons (như berry mùa giáng sinh năm mới) cũng như các món trà gói, sourvenir Phúc Long.\n\nSản phẩm signature của Phúc Long thì tất nhiên là trà sữa rồi, đậm vị trà vị sữa rõ ràng chứ không phải sữa đường có mùi trà. Nếu các bạn đến đúng lúc các bạn nhân viên đang ủ trà sẽ thấy sự khác biệt.\n\n- Về giá thành thì từ 30 - 50 mỗi món, thêm topping sẽ rơi vào 70 như vậy cũng vào tầm trung cao, giá thành tương xứng chất lượng.\n\nĐiều mình chê duy nhất là tốc độ pha chế của các bạn không được đồng đều lúc nhanh lúc chậm, còn chất lượng đầu ra thì ổn.",
+      "stars": 4,
+      "expectedLabel": 1,
+      "textLength": 1032
+    },
+    {
+      "category": "positive",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2tVeloxWnRjelIxY1VaZlgwUjFaVlV6VTFSd05VRRAB",
+      "text": "🇻🇳 Phúc Long – 69 Trần Đại Nghĩa, Hải Phòng\n\n☕ Quán nằm trên trục đường Trần Đại Nghĩa, vị trí dễ tìm, thuận tiện ghé nhanh\n🍵 Trà và cà phê giữ đúng hương vị Phúc Long quen thuộc, đậm trà, dễ uống\n🪑 Không gian gọn gàng, sạch sẽ, phù hợp ngồi ngắn hoặc mua mang đi\n👩‍🍳 Nhân viên phục vụ nhanh, khá chuyên nghiệp kể cả giờ cao điểm\n💰 Giá ở mức chuỗi thương hiệu, phù hợp học sinh, sinh viên và dân văn phòng\n⛔ Một số khung giờ quán khá đông, không gian ngồi chưa thật sự thoải mái nếu ở lâu\n\n⸻\n\n🇬🇧 Phuc Long – 69 Tran Dai Nghia, Hai Phong\n\n☕ Convenient location on Tran Dai Nghia Street, easy to stop by\n🍵 Signature tea and coffee with strong, familiar Phuc Long flavors\n🪑 Clean and tidy space, suitable for short stays or takeaway\n👩‍🍳 Fast and professional service even during busy hours\n💰 Reasonable prices for a popular beverage chain\n⛔ Can get crowded at peak times, not ideal for long stays",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 893
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNWOWQzcWxBRRAB",
+      "text": "Quando ero nella città vecchia di Ha Noi, sono andato in questo locale e ho preso una bevanda e un dolce, erano abbastanza buoni. Il servizio è nella norma, cordiali e abbastanza veloci, quando sei alla cassa ti danno un apparecchio che quando è pronto il tuo ordine inizia a suonare e quindi sai che è pronto e devi andare a ritirarlo. Il locale è carino è  su più piani e c’è anche l’ascensore per andare ai piani, in piu nei piani superiori c’è la terrazza e puoi sederti e osservare la piazza di fronte dove vedi questo popolo vietnamita molto laborioso e soprattutto vedi le centinaia di motocicli che si muovono in un caos  😮 e si rimane sorpresi che non succedono incidenti 🫣. Sono stato più di 1 ora ad osservare la vita quotidiana di questo meraviglioso popolo. Il prezzo un po’ più alto rispetto ad altri locali, ma accettabile per noi turisti. Ci sentiamo 🤙",
+      "stars": 4,
+      "expectedLabel": 1,
+      "textLength": 868
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VObWhfYkxfbXJfQTZ3RRAB",
+      "text": "Quán nằm ở tầng ba phía bên ngoài trung tâm thương mại. Bước vào quán cảm giác có mùi gì đó hơi khó chịu, không gian quán cũng cảm giác hơi chật chội và đông đúc. Mình mua takeaway nên không có chụp ảnh được.\n- Nhân viên ổn 👍\n- Trà sữa Phúc Long: trà như kiểu lá chè tươi các bố hay uống nước chè ý mọi người , cảm giác y hệt vậy luôn. Thì lá chè đấy với sữa 🥛 => tạo ra trà sữa Phúc Long. LƯU Ý : mọi người nhớ gọi ít đá nhé vì tan hết thì trà sữa uống chán lắm , chán và nhạt.\n- Trà vải sen: mùi thơm, hậu vị hơi đắng , không thấy mùi sen mà được tận 5 miếng vải ( size M ), không thấy xứng đáng giá tiền 55k lắm.\nMình đi giờ trưa 1 giờ nhưng quán vẫn rất đông nha ( full bàn ) nên các ghế bừa bộn chưa được dọn dẹp. Vả lại giờ trưa cũng nóng nhưng mà ngồi trong quán cũng không bật điều hoà nên cũng không muốn ở lại lắm.",
+      "stars": 4,
+      "expectedLabel": 1,
+      "textLength": 824
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VMRHc1cGY1b1plb3NBRRAB",
+      "text": "Phúc Long luôn là điểm đến quen thuộc của mình mỗi khi muốn thư giãn hoặc tìm một góc yên tĩnh để làm việc. Trà ở đây thì không chê vào đâu được – thơm, đậm vị, uống là nhớ mãi. Mình đặc biệt thích trà sữa Phúc Long và trà đào – hương vị rất đặc trưng, không bị ngọt gắt như nhiều chỗ khác.\n\nKhông gian quán được thiết kế hiện đại, sạch sẽ, ánh sáng dễ chịu, tạo cảm giác thoải mái từ khi bước vào. Nhân viên thì lúc nào cũng vui vẻ, lịch sự và phục vụ rất nhanh – kể cả những lúc đông khách cũng không bị chờ lâu.\n\nCó thể nói, Phúc Long không chỉ đơn thuần là quán nước mà còn là nơi để mình “nạp lại năng lượng” giữa nhịp sống bận rộn. Mỗi lần ghé qua là một trải nghiệm dễ chịu và đáng nhớ. Rất hài lòng và chắc chắn sẽ quay lại nhiều lần nữa!",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 746
+    },
+    {
+      "category": "positive",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNzd1BiMHpRRRAB",
+      "text": "Mình mới biết đến Phúc Long Trần Xuân Soann này sau khi đã ngồi ở IPH và Hàng Da quá nhiều rồi, nay thấy chỗ này gần nhà hơn thì lại cắm rễ ở đây thôi.\nVề trà thì khỏi nói rồi, Phúc Long có trà đào và trà vải ngon nhất, cá nhân mình thấy ngon hơn The Coffee House nhiều, dù mình là fan ruột của TCH trước khi Phúc Long ra Hà Nội vào năm ngoái.\nTrà của Phúc Long luôn thơm và ngọt một cách tự nhiên, vẫn còn cảm nhận được vị chát của trà (có lẽ pha đặc hơn The Coffee House). Bánh thì mình hay ăn bánh đào, nhưng hôm nay thấy bánh hơi khô và custard không được mềm mịn như mọi khi, hơi cứng, chắc do hôm nay trời lạnh.\nKhông gian của quán cũng rộng rãi, to đẹp như bên Hàng Da vậy (dù không to bằng), quán có 3 tầng và có khu ngoài trời ở tầng 3.",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 745
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNINFlPWHVnRRAB",
+      "text": "Uống ruột phúc long rồi\nMà dính 2 lần order ở đây bị sai món\nNhưng thái độ xử lý của nhân viên phản ứng rất kém\nMình gọi thì ko bh chốt đơn đàng hoàng như các điểm khác\n“ của chị hết *** tiền “ và mình cũng k để ý tiền quét\n\n1, Order nói rõ mình chỉ rõ như trên bảng giới thiệu mang ra 1 vị khác ra bảo sao c ko đọc phía dưới bảng\n-Mình order rõ ràng chỉ bảng món mới cho mình “LỤC TRÀ SỮA TÂN CƯƠNG “\n- Trả đồ là trà tân cương mận đỏ\n- và các bạn nv nữ phản hồi là e có CHỐT đồ\nMình có nói rõ ràng bên bạn ko chốt đồ vì mình ko nghe 1 từ mận đỏ nào hết\n- bạn nữ nói trên cái bảng đó có đó có nhiều loại trà ( ý bảo sao mình ko nhìn 😳)\n- mình bảo “ bạn ra nhìn hộ mình các bạn để che hết phía dưới mình chỉ nhìn đúng cái bảng hình to lù lù là cốc TRÀ SỮA TÂN CƯƠNG\n=> chốt đồ truyền đạt kém nhưg ko bh nhận lỗi\nMình có nói bảng này bạn để chỉ hiện rõ đúng cái hình Lục trà sữa tân cương hình ảnh là sữa\nPhía dưới hoàn toàn bị che vì cái khay tủ rồi còn đâu?\nNhưg vẫn cố e có chốt vs c rồi\nDạ vâng đọc mỗi của c hết từng này tiền + thanh toán hình thức j\nỞ Hàng diếu, Tran Xuan Soan\nhọ đọc vanh vách rất bài bản ko ai pick đồ xong hỏi mỗi thanh toán\nMình định uh thôi kệ uống tạm hoan hỉ\nNhưg bạn NV nữ phản ứng gay gắt vs mình “ ơ trên bảng có nhiều loại lục trà”\n( ý là nv bảo bảng có nh lục trà nên nv thích pick loại nào cũng đk hả hay sao hay đổ tại là do c ko nhìn)\nNên mình nói luôn “ vì thái độ bạn nữ kém nên vui lòng đổi đúng cốc mình gọi “\nBạn nữ đó tiếp tục mắng bạn nam order ( thái độ bạn này rất biết nhận lỗi)\nVà bạn nữ đó trong lúc làm cốc trả mình đập đồ đùng đùng trong quầy :)\n\n2, thêm lần nữa 5/9 đọc đổi trà thì pick luôn thành 2 cốc ( khúc này rõ ràng nói ĐỔI CHO MÌNH )\nVà có bonus thêm của c được mua bánh giá rẻ hơn\nCòn 15k\n(nhưg ko nói hoá đơn c mua 2 cốc được mua bánh rẻ)\nMình ko để ý giá tiền nên cũng nghĩ bạn ý pick đúng nước\nLúc order mình còn ngỡ ngàng sao chốt đồ cộc lốc thế nhỉ\nNhưg cũng ko để tâm lắm vì đang bận hẹn bạn trên tầng\nSau khi lấy đồ xong mình có hỏi “ ôi bạn ơi mình gọi 1 cốc thôi mà “\nThì vẫn tiếp tục bạn nữ này đi ra khẳn khái em có chốt đồ cho c mà :)))\nÝ là các bạn thích chốt kiểu j thì chốt ko nghe mồm khách nói\nMình cũng chả nghe câu CHỐT nào của các bạn\nBạn nữ bảo check cam MÌNH CÓ NÓI RÕ CHECK CAM ĐI VÌ MÌNH CHẮC CHẮN KO NHẬN THÔNG TIN CHỐT ĐỒ\nAnh quản lý đi ra có nói vậy bh e hoàn tiền cho c hình thức abcd mình bảo “ ko cần vì đang bận “\nVà có nói anh quản lý “ anh check lại đi đi 2 lần e đến đây đều pick sai đồ”\nÀ vậy nếu cảm thấy KH đang chưa thoả đáng ko nhận 1 câu xin lỗi\nBản chất ng QL này có kém trong cách xử lý vs KH ko ?\nBạn NV NỮ đó NÓI VỌNG “ 1 lần chứ đâu lấy 2 lần “\n\n=> TỨC 2 lần mình đến đây đều ngỡ ngàng với cách hành xử của nv và cách chốt đồ bên này rõ ràng có vấn đề\nVà 2 lần order sai đồ ở đây và cbh có ý định làm khó nv chưa nghĩ phải đổi đồ hay phải HOÀN TIỀN 1 CỐC NƯỚC\nChốt đồ cộc lốc\n- chốt đồ kém => đào tạo lại việc nói to rõ ràng, clear được với KH truyền đạt sao cho KH hiểu => phục vụ ko nắm được thông tin KH nói\n- cách xử lý khiếu nại như chém chả vào mặt KH thiếu tôn trọng KH hơi thách thức\nTôi cũng làm ngành dịch vụ\nNếu có sai sót thì nên biết tiếp nhận ý kiến\nNếu KH ko thoả đáng ít nhất cũng 1 câu “ xin lỗi c vì trải nghiệm lần này chưa tốt “\nRÕ RÀNG MÌNH CHI TIỀN RA KO PHẢI ĐỂ CÁC BẠN CHO UỐNG GÌ THÌ UỐNG\nVÀ NHẬN LẠI THÁI ĐỘ ĐÓ\n\nCái sai của mình là quét tiền ko để ý giá\nNhưg ai ơi tôi đi mua cốc nước\nMỗi lần đối chấp kêu sao c ko nhìn\nTrong khi cái máy các bạn bị lác :))",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 3487
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUR4c19fQnVRRRAB",
+      "text": "Hôm nay chúng mình có ngồi, order đồ uống tại quán và có một trải nghiệm DỊCH VỤ TỆ.\n1. Lúc mới vào, khi vào quán order đồ, bạn mình có gọi hai trà thì nhân viên order nhầm đồ cho bạn mình. Hôm trước tại PL Quang Trung bạn mình khi ord trà cũng bị nv ord nhầm thành trà sữa ( bạn mình bị DỊ ỨNG nhẹ với các chế phẩm từ sữa), nên hôm nay khi ord đồ bạn mình đã rút kinh nghiệm check kỹ trước khi các bạn nv tính bill và đúng thật các bạn vẫn ord nhầm (KB CÓ PHẢI VĂN HÓA CÔNG TY HAY KHÔNG?). Và bạn mình có nhắc lại kỹ tầm 3 lần với bạn nv ord là cho ít đường vào cốc bạn í nhưng nhân viên thái độ có vẻ khó chịu.\n2. Chúng mình ngồi gần quầy pha chế , ngồi dưới gần cái loa. Lúc ngồi nói chuyện thì loa mở nhạc khá to và mình có lịch sự nhờ bạn nv vặn nhỏ bớt, bạn cũng đồng ý một cách rất lịch sự. Nhưng sau 1-2 bài hát, loa lại được VẶN LÊN RẤT TO. Chúng mình ngồi nói chuyện với nhau mà phải tăng âm lượng lên gấp đôi vì loa át hết tiếng. Và hình như ở PL không có list nhạc tiêu chuẩn nên các bài nào mà nv bật có bass to một chút là như lấy búa đánh vào đầu vậy. List nhạc thì đủ các thể loại chả liên quan gì nhau.\n3. CÁC BẠN ĐUỔI KHÁCH RẤT THIẾU TẾ NHỊ.\nMình có để ý giờ đóng cửa các bạn là 10h, tầm 10h thì bạn mình có đi qua nhà vệ sinh thì mình cũng chuẩn bị đồ để đi về. Trong quán vẫn còn tầm 6 vị khách đang ngồi. Các bạn có thể hoàn nói với khách lịch sự rằng 10h các bạn đóng cửa thì các bạn xin phép dọn đồ trước để khách rời quán nhưng KHÔNG, các bạn BẬT NHẠC TO GẤP 3, bass như trong bar, bạn mình đi từ sảnh vào bảo nghe nhạc to đùng đùng luôn.\nLúc mình và bạn mình đi về, không biết là mình có nghe nhầm hay không nhưng mình có nghe thấy bạn nói gì đó đến việc mở nhạc to phát là CÚT luôn rồi cười nhe răng với nhau. Mình xin lỗi nếu mình nghe nhầm nhưng thực sự trải nghiệm hôm nay của mình với phúc long rất tệ.\n4. Đồ uống:\nHôm trước mình có qua cơ sở Quang Trung thì Ô long dâu các bạn pha với dâu tươi rất ngon. Nhưng sang Royal thì các bạn lại mứt dâu đóng hộp uống rất sợ. Hôm nay uống tại VQ thì trà ủ cả hai cốc đều bị khét và đắng ngắt. Mình không biết quá trình training nv và sự thống nhất về công thức pha chê của PL như thế nào. Nhưng mình nghĩ các bạn nên xem lại về quy trình.\n\nMình viết ra những dòng này không mang ác ý mà đơn giản chỉ hy vọng các bạn có thể cải thiện thái độ và chất lượng dịch vụ. Mình cũng không hiểu là mình đã làm gì mà phải để các bạn khó chịu với chúng mình như vậy????????? Hiện tại không thiếu các quán và brand FnB tốt, nhưng sau dịch mình rất thích phúc long vì chất lượng trà ngon và không gian quán khá ổn. Nhưng sau những trải nghiệm vừa qua thì mình xin phép KHÔNG BAO GIỜ QUAY LẠI.",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 2650
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNocnEzN1ZnEAE",
+      "text": "I have no idea for the life of me why this place has so many stellar reviews. It’s a really big and nice looking coffee shop but the coffee wasn’t even that good and they barely even have any options. The first red flag should have been when I entered the store and didn’t even see any coffee listed on the overhead menu. On the plus side my tiramisu cup tasted pretty good.\n\nBesides for regular iced coffee with condensed milk they only have 1 other option which was a Carmel iced coffee that tasted like instant coffee from the dollar store.\n\nI guess it’s a nice spot to chill and get some work done for the locals but for me it was an entirely forgettable experience and not somewhere I would go again. I would compare it to Starbucks in a sense but I can’t because Starbucks, for as much hate as it gets, still serves a decent cup of coffee.\n\nThe views from the rooftop are nice but there was some liter scattered about and some chairs stacked on top of each other that looked like storage and not very professional. There’s nothing bad about this place but there’s nothing really that great either. It felt very sterile and corporate and had zero charm or hospitality.\n\nHonestly I had a better iced coffee on my flight over to Hanoi than here. I would skip this place if your visiting Hanoi and go to literally any of the other dozens of smaller coffee shops scattered throughout the city.",
+      "stars": 3,
+      "expectedLabel": 0,
+      "textLength": 1394
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURIaGVXZ0hREAE",
+      "text": "Trải nghiệm siêu tệ và cạch mặt luôn từ giờ. Để khách đợi gần 1 tiếng đồng hồ chỉ vì 3 cốc nước. Ko biết là mình tuyệt vời quá rồi ko cần khách hay thế nào? Nhân viên thì thái độ ko niềm nở, mặt nặng như chì đổ lỗ từ cái lúc order đồ đến lúc trả đồ. Nhân viên thì đông nhưng ko hiểu cái quy trình phân việc ra sao? Khách ngồi đợi cổ dài hơn cả ngỗng rồi nhưng nhân viên vẫn có người ra quờ quặng mấy cái hộp xong đứng thẩn thơ bấm điện thoại? Là thế nào đấy nhỉ? Giục lấy giục để vì ko có dư thời gian nhưng nhân viên cũng chỉ trả lời ấm ớ chứ ko hề xin lỗi khách một lời? Mình sai mà? Sao mình lại có cái thái độ như thế với khách ấy nhỉ? Nếu mà mình có đơn ship số lượng lớn thì mình cũng phải phân bổ nhân lực ra phục vụ khách order tại chỗ chứ? Cả đám nhân viên dồn vào phục vụ đơn ship xong để cả quán phải đợi? Ko hiểu bạn nào làm quản lý ở cái cơ sở này nữa? Mình có biết quan sát ko nhỉ? Đến lúc khách bực lên phàn nàn đến lần thứ 3 rồi mới cắt cử một người đi làm đơn cho khách ngồi tại chỗ. Wow :) thật sự là hết nói nổi luôn ấy. Rồi đến cuối cũng ko xoa dịu khách một câu xin lỗi nào mà chỉ rập khuôn máy móc nói một câu \"chúc chị ngon miệng\". Còn ngon nổi ko? Rõ là mất tiền mà mua bực vào người. Các bạn nhân viên là bộ mặt nhãn hàng mà riêng cơ sở này thì tôi đánh giá trải nghiệm siêu tệ. Rate 1 sao cũng chưa thấy đỡ bực nữa.",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 1341
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUQ3cy1xSGRBEAE",
+      "text": "mình sẽ cho đánh giá 1 sao vì ca chiều nay lúc 15;00 ngày 28/8/2024 nhân viên phúc long thái độ với shipper. Anh shipper đến lấy đồ đã chờ 30p . Thấy lâu qua anh ấy vào quầy hỏi em ơi mấy cốc của anh sắp xong chưa em,các shipper khác được lấy hết rồi. Nhưng nhân viên thái độ, ban nam pha chế nói ANH ĐI VÀO MÀ LÀM. Còn bạn đứng ca ( mình không biết có phải quản lý không,nhưng áo đen khác đồng phục) hết toáng lên không chủ ngữ vị ngữ 30 PHÚT NỮA. Mình là khách hàng và mình cũng đạng gọi đồ nhưng mình thấy các bạn nhân viên như vậy không hề tốt một chút nao. Các bạn làm dịch vụ và thương hiệu phúc long ở việt nam cũng là một trong những thương hiệu khá nổi tiếng. Không thể nào đông khách xong các bạn thái độ với khách như vậy được, RÂT KÉM CHUYÊN NGHIỆP. Các bạn vẫn có thể chọn câu xin loiix với shipper chờ lâu và báo anh ấy chờ thêm chút nữa. Các bạn nghĩ các bạn là ai mà các bạn dám thái độ lồi lõm như vậy với khách hàng. Các bạn đang sống bằng chính đồng tiền của khách hàng đó. không có khách hàng liệu các bạn có tiền không? Thật sự rất đáng buồn khi thương hiệu phúc long như này. Tất cả các bạn nhân viên ca chiều nay không hề có lời xin lỗi với anh shipper, vẫn thái độ coi mình là đúng. QUÁ TỆ! Mình sẽ không bao giờ quay lại quán này nữa. PHÚC LONG cơ sở trần đại nghĩa gần trường đại học bách khoa HN.",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 1323
+    },
+    {
+      "category": "negative",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2xGdVVFSm5jbTVMV0V4bFdYaFVia1J2ZFZkU1pIYxAB",
+      "text": "Thái độ nhân viên tệ. Chắc do mình quê mùa lần đầu đến nên kb menu đặt ở đâu để od, loay hoay nhìn ngó tìm menu 1 hồi thì bạn nv mới chỉ tay lên trên nói “menu ở đây”. Sau khi nhận đồ xong mình có đi tìm nhà vệ sinh, hỏi bạn nv là bạn ơi nvs ở đâu ạ, thì bạn nv tl “nvs trên tầng 3” (mình đang ở tầng 1), thấy có thang máy thì mình định dùng thang máy thì bạn nv nói “thang máy k dùng được đâu” =))) với thái độ và giọng điệu này thì mình nghĩ các bạn khônh nên làm trong nghành dvu để tránh ảnh hưởng đến quán. Thân ái chào và không baoh quay lại. Mình bỏ tiền ra để uống cốc nước không hề rẻ mà thái độ các bạn nv cứ như mình chỉ đến ngồi nhờ ý:)))) mong các bạn sớm nghỉ việc. Còn về phần đồ uống mình od trà sữa, thấy trà thơm nhưng bị đậm trà quá khiến trà có vị chát như chè ý, 1 phần do đồ k hợp khẩu vị và 1 phần do thái độ nv nên mình và bạn mình đều để lại 1 cốc hơn nửa, 1 cốc để nguyên. Hôm qua mình vừa ngồi bên HL đối diện quán Phúc Long này thì các bạn nv bên đó thái độ chuyên nghiệp, chăm sóc khách hàng rất tốt. Hai hãng nước có tiếng đối diện nhau mà để các bạn nv thái độ phục vụ tệ ntn thì sau này khi không còn đông khách hàng lui tới nữa thì các bạn cũng đừng hỏi lí do vì sao!",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 1200
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNqNnVDUlR3EAE",
+      "text": "- Phản Ánh Dịch Vụ: Đồ uống giá khá cao thì chất lượng dịch vụ phải sánh với giá tiền và thương hiệu nhưng cách phục vụ, nói chuyện của TẤT CẢ nhân viên quá kém, hỏi cộc lốc không đầu không đuôi, hỏi khách uống và sử dụng món như tra khảo.\n- Phản ánh không gian: ở mặt tiền rất đẹp nhưng tầng 1 không có máy lạnh, phải dùng quạt. Tầng 2, có máy lạnh tốt nhưng đã hết chỗ vì ai cũng muốn ngồi mát nên dồn lên tầng 2. Tầng 3, máy lạnh quá yếu, rất nóng, có hỏi nhân viên lý do \"nhân viên nói do tầng cao nên trần nhà nóng, toả nhiệt, máy lạnh đã bật no nhất rồi\" tất cả những quán tôi uống còn cao hơn quán này mà nó vẫn mát, máy lạnh rất tốt, tại sao mở lâu, mở ở khu vực mặt bằng đẹp mà không khắc phục được điều này?\n- Tôi đành phải đi xuống tầng 1, thấy chỉ có một cái quạt bên cạnh chị nhân viên đang ngồi, tôi hỏi xin cái quạt và chị nhân viên rất chậm chạp, ngồi tính toán sổ sách cho khách đứng trước mặt đợi lấy quạt, tôi phải nhắc lại lần thứ 2 là \"chị ơi, e xin lấy quạt nha, chị ấy mới đứng dậy với thái độ không tốt\"\n- Vừa đặt mông ngồi thì bàn quá bẩn tôi hỏi chị nhân viên có khăn không rất lịch sự, chị đưa khăn ra lau cái xoẹt rồi ngoảnh mông đi\nĐẾN LẦN 1 KHÔNG BAO GIỜ ĐẾN LẦN 2",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 1194
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUMtM0tmSWJnEAE",
+      "text": "1. View: Nằm ngay trên mặt đường Tôn Thất Thuyết, dễ nhìn thấy, có chỗ để xe.\n\n2. Decor: Không có gì đặc biệt, tương tự như highland hay các quán mô hình take away khác.\n\n3. Đồ uống: Bình thường. Mình đến Phúc Long lần đầu tiên vì thấy mọi người hay nhắc đến và khen đồ uống ngon. Nhưng với mình thì bình thường, không đến mức ngon quá như m.n nói. Cái này theo mình thì Phúc Long PR hơi lố.\n\n4. Dịch vụ: Bình thường, như mọi mô hình take away khác, nhân viên tươi tắn, vui vẻ.\n\n5. Không gian quán: Bình thường, quán này hơi chật so với quán ở bên đường Cầu Giấy. Và mình thật sự không thích 2 điểm là ổ cắm điện và nhiệt độ điều hòa của quán. Đi giữa mùa hè mà ngồi trong quán tưởng mùa đông. Lạnh đến độ mình và bạn mình là con trai mà còn phải run cầm cập uống xong cốc nước là về luôn. Ổ cắm hơi bất tiện cho việc sử dụng laptop để làm việc.\n\nNói chung thì mình thấy bình thường, để mà so sánh về chất lượng và giá cả thì thật sự mình thấy Phúc Long đang để giá cao hơn so với chất lượng. Nếu phải lựa chọn thì mình vẫn thích ngồi highland hơn, giá cả hợp lý, không gian thì cũng tương tự như Phúc Long, đồ uống cũng rất phù hợp với khẩu vị của mình.",
+      "stars": 3,
+      "expectedLabel": 0,
+      "textLength": 1154
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNybE0zVGl3RRAB",
+      "text": "Tôi và bạn gái đi uống nước khi trời đnag đổ cơn mưa lúc 1h trưa ngày 3/7/2024. Thực sự quá bức xúc khi nhân viên quầy order đồ mặt nhăn nhó tiếp khách chúng tôi, Họ thậm chí còn ko báo trước cho chúng tôi rằg 2 dòng trà Best seller ở đây đã hết. Họ im lặng từ đầu đến cuối chỉ đến khi chúng tôi chốt chọn loại đồ uống nào thì họ mới nói:” Anh chị ơi bên em hết loaj trà vải đó rồi” Bạn hãy tôn trọng chúng tôi, tại sao trong khâu làm việc của các bạn lại có cách tiếp khách và ko có 1 chút tư vấn gì với khách hàng như thế!. Bạn phải báo trước cho chúng tôi chứ, chúng tộ đã trao đổi rất kỹ trước khi order 1 loại đồ uống và bạn chốt 1 câu làm khách hàng thất vọng như ko muốn bán đuổi chúng tôi đi vậy. Lúc này là 13h và bạn kêu là Best seller hết đồ. Ủa là sao ta? Bạn gái tôi rất yêu Phúc Long và cô ý muốn chiều mưa chúng tôi có thể hạnh phúc bên nhau thưởng thức ly trà nóng, và bạn cho chúng tôi câu chốt như thế mặt tỉng bơ thế à. Cách làm việc và thái độ đó là sao? Hãy chuyên nghiệp trở lại vì tôi quá thất vọng với cách làm Lv như thế mong qly check Cam để kiểm tra lại cách tư vấn cho khách hàng. Thực sự rất rất buồn!",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 1130
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUM5Mkt6NTNRRRAB",
+      "text": "Nay thực sự sự đây là trải nghiệm vô cùng tồi tệ của mình tại phúc long . Và có lẽ đây là lần cuối cùng mình uống thương hiệu này .Trưa nay mình có ghé Phúc long mua nước. Mình thấy quầy đông ngừoi nhưng pha nước chờ mãi không tới lượt . Cả khách cả shipper đều khó chịu . Thắc mắc thì nhân viên thái độ không có tí niềm nở nào với khách hàng , không có tí tôn trọng nào với shipper. Các bạn cũng được trả tiền như người ta thôi mà sao lại hành xử như thế.Khoan bàn về chất lượg đồ uống nhưng vào một quán thương hiệu lớn mà thái độ như vậy thử hỏi có ai muốn vào uống nữa không đây ! Muốn làm chủ thương hiệu một ngừoi quản lý giỏi trước hết phải học cách đối nhân xử thế với mọi người xung quanh trước từ các bạn nhân viên làm với mình đến các anh shipper đến cả những anh chị lao công chả hạn ( họ có thể là khách bất cứ lúc nào ) ….Thiết nghĩ Phúc long nên có 1 cuộc đào thải lứa nhân viên cũ ở đây cho những người thực sự có năng lực có tâm với nghề được phát triển bản thân hơn là những “CON SÂU LÀM RẦU NỒI CANH“ như vậy. Quán thì đông thật đấy nhưng chỉ có ai trải nghiệm rồi mới thấy nó không “xứng đáng” cỡ nào….",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 1122
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURaNXFtenR3RRAB",
+      "text": "Đây là quán Phúc Long mới sau khi bị nhượng quyền nên cách pha chê đồ uống cảm giác khác hẳn mấy quán cũ (dù mấy quán cũ cũng thay đổi mà đỡ hơn chút)\nMình chỉ uống hồng trà sữa nên đặc biệt chú ý và nhận biết về sự khác biệt của mình cực rõ ràng. Bài review này dành cho fan trà sữa đậm vị trà của PHúc Long như thời mới mở vài địa điểm.\nNhận xét đầu tiên là không gian quán: quán nằm ở tầng hầm toà winmart chỗ mấy khu 29T1,2. Quán mát, không gian thì sạch sẽ và vì khá ít khách do địa điểm nên mình thấy ở quán có một sự thoáng do ít người. Mình thích quán kiểu ít người như vầy, ai đến làm việc học tập thì rất hợp. Mát lạnh ít người. Không gian quán 10/10\nĐồ uống: 5/10 hic. Chán thật sự, mình đã gọi note rõ nhiều trà nhưng vị trà vẫn nhạt. Mình thấy đa số các quán sau khi bị mua lại đều coa vị trà nhạt. Buồn lắm\nNhân viên: vui vẻ 10/10\nChỗ để xe: thoải mái để cùng chỗ với siêu thị nên mình rất thích điểm này ạ\nNếu có gì đó phải góp ý thì đó là mình mong hãy pha công thức đậm vị trà hơn. Còn các nước uống khác mình ko uống bao giờ nên ko comment nha\nGiá đồ uống thì đc niêm yết rồi mình ko oánh giá gì thêm cả",
+      "stars": 3,
+      "expectedLabel": 0,
+      "textLength": 1121
+    },
+    {
+      "category": "negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNTeTl2NTZBRRAB",
+      "text": "Mình đã có thời gian cực kỳ thích đồ uống trà tại phúc long tuy nhiên có một vài điểm rất mong các bạn có thể cải thiện.\n1. Đồ uống khá đắt nhưng lại phải tự phục vụ (so với các thương hiệu khác như TCH, Highland Coffee)\n2. Không gian khá đẹp, nhưng nhà VS rất ồn vì tiếng máy sấy, không có cách âm)\n3. Sau nhiều lần mình muốn vào và bỏ về vì hết chỗ đỗ xe thì nó h cũng cải thiện (ở CH trần đại nghĩa) (do bạn bảo vệ cũ khá là khó chịu)\n4. Nước Lọc! (Đồ uống ở PL khá ngọt/khé đối với mình) nhưng không có nước lọc? Muốn đuổi khách về sớm hay gì?\n5. Thẻ thành viên, mình thực sự không hiểu CS của PL? Hóa đơn 300,000đ mới được làm thẻ thành viên? Thế tôi đi caphe ngồi làm việc học tập, tôi ăn cl gì hết 300k trong 1 hóa đơn để làm thẻ? Vô lý? Hay lần nào đi cũng phải rủ một lũ bạn đi xong chỉ để Làm Thẻ Thành Viên?\nTóm cái váy lại, là PL cơ sở này: không gian đẹp nhưng nhà VS thiết kế không được hợp lý, nhiều thứ khó hiểu về chính sách và yêu cầu thẻ thành viên trong khi đồ uống rất đắt mà dịch vụ thì không được tương xứng. Được cái là các bạn nhân viên toàn trai xinh gái đẹp 😆🤩",
+      "stars": 2,
+      "expectedLabel": 0,
+      "textLength": 1087
+    },
+    {
+      "category": "empty",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2xKa2NEZFJTVEo1ZEhCMFFteEVkbFZpVm5sSlVGRRAB",
+      "text": "Không có bình luận",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 0
+    },
+    {
+      "category": "empty",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUNRa3FhbHdBRRAB",
+      "text": "Không có bình luận",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 0
+    },
+    {
+      "category": "empty",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURfaU1XWVJREAE",
+      "text": "Không có bình luận",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 0
+    },
+    {
+      "category": "empty",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2xKRVVHaEpPVEpPYVV0ME5uZHlURFl3YVVnMVQyYxAB",
+      "text": "Không có bình luận",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 0
+    },
+    {
+      "category": "empty",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNmLTlMbml3RRAB",
+      "text": "Không có bình luận",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 0
+    },
+    {
+      "category": "very_short",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT214eGRGOHpMVEJYZWxOb1lUUnJhSEY1VTA1cWJWRRAB",
+      "text": "Quá tuyệt vời",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 13
+    },
+    {
+      "category": "very_short",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT25ONFFXOTBTR2hGVkhwbVQwUkpOa1pQYmxCck4xRRAB",
+      "text": "Trên cả tuyệt vời",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 17
+    },
+    {
+      "category": "very_short",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2w4NGVFOVhZbkppVWpSdlpVOUVNSFpJYldSZlNYYxAB",
+      "text": "Nv ok",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 5
+    },
+    {
+      "category": "very_short",
+      "reviewId": "ChZDSUhNMG9nS0VJX3FnWUx5MU0zR0lBEAE",
+      "text": "Quá lâu!",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 8
+    },
+    {
+      "category": "very_short",
+      "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNfc0xLNVpBEAE",
+      "text": "Đồ uống ngon lắm ạ",
+      "stars": 5,
+      "expectedLabel": 1,
+      "textLength": 18
+    },
+    {
+      "category": "1_star_severe",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2tadFJqSXpPRVpYVUdaMU5EQXpkbE5DYUZkTVMyYxAB",
+      "text": "Đến ođ nhân viên không nói gì",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 29
+    },
+    {
+      "category": "1_star_severe",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2pGRVV6UlhPRk5LU2tvM2JuUkdibGQwVWxnM1MwRRAB",
+      "text": "Trộm vía note mà nhân viên không thèm đọc. Còn chỉnh sửa yêu cầu khách note trên đơn. Đặt từ 3h chiều, 5h chiều mới giao đơn :))\nLại còn làm sai đồ nữa cơ.\nKbh đặt lại cơ sở này",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 177
+    },
+    {
+      "category": "1_star_severe",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2xRNFRVbDVRVUk0TkVKNmN6a3pRMUZQY0hka2VXYxAB",
+      "text": "Mình đặt đơn app của quán, nhưng mãi không duyệt đơn, tận 1 tiếng sau mới báo lại quán miss đơn giờ mới làm cho mình. Trong khi đó người mua vật vã 1 tiếng chỉ để đợi cốc nước đáng lẽ được uống từ lâu rồi. Chất lượng nhân viên cơ sở này khá kém.",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 245
+    },
+    {
+      "category": "1_star_severe",
+      "reviewId": "ChdDSUhNMG9nS0VQaXF5TTdLdGJHTm9BRRAB",
+      "text": "Đồ uống thì bình thường nếu k nói là dở, nhân viên thì thái độ nặng nhẹ với khách, cái cơ bản nhất là hướng dẫn và xuất hoá đơn cho khách cũng k nói rõ ràng, đến khi khách hỏi thì tỏ thái độ cáu gắt, không gian thì bình thường, ít ổ cắm điện, nói chung là dở so với mặt bằng chung",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 280
+    },
+    {
+      "category": "1_star_severe",
+      "reviewId": "ChZDSUhNMG9nS0VMSFlwb0NadkpxeE1REAE",
+      "text": "gọi trà sữa matcha bảo size nhỏ nhưng order cho khách size lớn\ncó bảo note lại là ít đá nhưng đưa lại đủ đá, hỏi ít đá phải không thì nhân viên ko trả lời",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 154
+    },
+    {
+      "category": "weekend_negative_long",
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2xoWGRYbElObWN6WnpkVk5VODBWaTAxVW1GR01FRRAB",
+      "text": "Nhân viên phục vụ nhẹ nhàng nhưng nhân viên bảo vệ (ông anh trẻ hơn) mặt hằm hằm như bực tức gì khách vậy (chú bảo vệ lớn tuổi thì rất bình thường nhé). Đồ uống vị hơi kì, lời khuyên là k nên gọi món best seller nhé, mình thử 2/3 món best seller và đều k ngon.",
+      "stars": 3,
+      "expectedLabel": 0,
+      "textLength": 260,
+      "isWeekend": 1,
+      "hour": 8
+    },
+    {
+      "category": "weekend_negative_long",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUNvdzhqTjdnRRAB",
+      "text": "Cùng là hồng trà đào sữa thạch konjac mà mình uống ở đây nó lạ lắm. Trà không thơm, mà hậu vị chua như kiểu trà hỏng.\nCó đưa cho các bạn nv thử lại thì các bạn bảo vị bthg, nên là cũng chịu 🥺\nHỏng hiểu do chất lượng pha của từng cơ sở, hay do vị giác t hỏng nữa 🥲🥲",
+      "stars": 2,
+      "expectedLabel": 0,
+      "textLength": 264,
+      "isWeekend": 1,
+      "hour": 12
+    },
+    {
+      "category": "peak_hour_negative",
+      "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUNncE15b3ZBRRAB",
+      "text": "Mình ngồi chờ 30 phút không nhận được đồ là 2 cốc trà với 1 cái bánh.\nBực nữa là 5 khách đến sau mình được nhận đồ trước mình dù 5 phút mình nhắc giả đơn cho mình 1 lần.\nQuầy order như 1 cái chợ để khách sau đến chen được nhận đồ trước.",
+      "stars": 1,
+      "expectedLabel": 0,
+      "textLength": 236,
+      "hour": 8
+    },
+    {
+      "category": "no_diacritics",
+      "reviewId": "SYNTH_NO_DIACRITICS_01",
+      "text": "Quan ngon lam, nhan vien nhiet tinh, se quay lai",
+      "stars": null,
+      "expectedLabel": 1,
+      "textLength": 48,
+      "synthetic": true
+    },
+    {
+      "category": "no_diacritics",
+      "reviewId": "SYNTH_NO_DIACRITICS_02",
+      "text": "Do uong do, nhan vien cham, cho doi lau qua",
+      "stars": null,
+      "expectedLabel": 0,
+      "textLength": 45,
+      "synthetic": true
+    },
+    {
+      "category": "english",
+      "reviewId": "SYNTH_EN_01",
+      "text": "Great bubble tea, best milk tea in Hanoi! Will come back definitely.",
+      "stars": null,
+      "expectedLabel": 1,
+      "textLength": 67,
+      "synthetic": true
+    },
+    {
+      "category": "english",
+      "reviewId": "SYNTH_EN_02",
+      "text": "Terrible service, waited 30 minutes, staff was rude and ignored us.",
+      "stars": null,
+      "expectedLabel": 0,
+      "textLength": 66,
+      "synthetic": true
+    },
+    {
+      "category": "sarcastic",
+      "reviewId": "SYNTH_SARCASTIC_01",
+      "text": "Tuyệt vời luôn, trà sữa đắng nghét mà nhân viên bảo đúng công thức rồi 🙃",
+      "stars": null,
+      "expectedLabel": 0,
+      "textLength": 75,
+      "synthetic": true
+    },
+    {
+      "category": "sarcastic",
+      "reviewId": "SYNTH_SARCASTIC_02",
+      "text": "Quá xuất sắc, đợi 45 phút mới có ly nước, trải nghiệm đỉnh cao 👏",
+      "stars": null,
+      "expectedLabel": 0,
+      "textLength": 67,
+      "synthetic": true
+    },
+    {
+      "category": "mixed",
+      "reviewId": "SYNTH_MIXED_01",
+      "text": "Trà sữa rất ngon, vị đậm đà. Nhưng nhân viên thái độ quá, order sai 2 lần không xin lỗi.",
+      "stars": null,
+      "expectedLabel": null,
+      "textLength": 89,
+      "synthetic": true
+    },
+    {
+      "category": "mixed",
+      "reviewId": "SYNTH_MIXED_02",
+      "text": "Không gian đẹp, view thoáng mát. Tuy nhiên đồ uống hơi nhạt so với giá tiền.",
+      "stars": null,
+      "expectedLabel": null,
+      "textLength": 76,
+      "synthetic": true
+    }
+  ]
+}
