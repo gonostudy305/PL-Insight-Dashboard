@@ -19,9 +19,7 @@ import { filter } from 'rxjs';
       <nav class="sidebar">
         <div class="sidebar-header">
           <div class="logo-mark">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
-            </svg>
+            <img src="logo.ico" alt="Phúc Long" style="width: 48px; height: 48px; object-fit: contain;">
           </div>
           <div>
             <h1 class="logo">PL-Insight</h1>
@@ -57,6 +55,12 @@ import { filter } from 'rxjs';
             <a routerLink="/alerts" routerLinkActive="active">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
               Cảnh báo
+            </a>
+          </li>
+          <li>
+            <a routerLink="/map" routerLinkActive="active">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Bản đồ
             </a>
           </li>
         </ul>
@@ -96,7 +100,8 @@ import { filter } from 'rxjs';
 
     .sidebar {
       width: 260px;
-      background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-dark) 100%);
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
       padding: 24px 16px;
       display: flex;
       flex-direction: column;
@@ -104,41 +109,45 @@ import { filter } from 'rxjs';
       top: 0;
       height: 100vh;
       overflow-y: auto;
+      box-shadow: var(--shadow-sm);
+      z-index: var(--z-sticky);
     }
 
     .sidebar-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       padding: 0 8px 24px;
-      border-bottom: 1px solid var(--sidebar-border);
+      background: transparent;
+      border-bottom: 1px solid var(--color-border-light);
       margin-bottom: 24px;
     }
 
     .logo-mark {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255,255,255,0.15);
+      background: transparent;
       border-radius: var(--radius-md);
-      color: #fff;
       flex-shrink: 0;
     }
 
     .logo {
-      font-size: 20px;
+      font-size: 26px;
       font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.03em;
+      color: var(--pl-green);
+      letter-spacing: -0.04em;
+      line-height: 1.1;
     }
 
     .subtitle {
-      font-size: 11px;
-      color: var(--sidebar-text-muted);
-      margin-top: 2px;
+      font-size: 13px;
+      color: var(--pl-green-dark);
+      margin-top: 4px;
       letter-spacing: 0.02em;
+      font-weight: 500;
     }
 
     .nav-links {
@@ -155,7 +164,7 @@ import { filter } from 'rxjs';
       gap: 12px;
       padding: 11px 14px;
       border-radius: var(--radius-md);
-      color: var(--sidebar-text-muted);
+      color: var(--color-text-secondary);
       text-decoration: none;
       font-size: var(--font-size-base);
       font-weight: 500;
@@ -164,15 +173,15 @@ import { filter } from 'rxjs';
     }
 
     .nav-links a:hover {
-      background: var(--sidebar-hover);
-      color: #fff;
+      background: var(--pl-green-50);
+      color: var(--pl-green-dark);
     }
 
     .nav-links a.active {
-      background: var(--sidebar-active);
-      color: #fff;
+      background: var(--pl-green-50);
+      color: var(--pl-green-dark);
       font-weight: 600;
-      box-shadow: inset 3px 0 0 #fff;
+      box-shadow: inset 3px 0 0 var(--pl-green);
     }
 
     .nav-links a svg {
@@ -189,7 +198,7 @@ import { filter } from 'rxjs';
     .sidebar-footer {
       margin-top: auto;
       padding-top: 16px;
-      border-top: 1px solid var(--sidebar-border);
+      border-top: 1px solid var(--color-border-light);
     }
 
     .user-block {
@@ -199,7 +208,8 @@ import { filter } from 'rxjs';
       padding: 10px 8px;
       margin-bottom: 12px;
       border-radius: var(--radius-md);
-      background: rgba(255,255,255,0.08);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-light);
     }
 
     .user-avatar {
@@ -208,9 +218,9 @@ import { filter } from 'rxjs';
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255,255,255,0.15);
+      background: var(--pl-green-50);
       border-radius: 50%;
-      color: #fff;
+      color: var(--pl-green);
       flex-shrink: 0;
     }
 
@@ -224,19 +234,19 @@ import { filter } from 'rxjs';
     .user-name {
       font-size: 13px;
       font-weight: 600;
-      color: #fff;
+      color: var(--color-text);
     }
 
     .user-role {
       font-size: 11px;
-      color: var(--sidebar-text-muted);
+      color: var(--color-text-secondary);
       text-transform: capitalize;
     }
 
     .btn-logout {
       background: none;
       border: none;
-      color: var(--sidebar-text-muted);
+      color: var(--color-text-secondary);
       cursor: pointer;
       padding: 6px;
       border-radius: var(--radius-sm);
@@ -246,13 +256,13 @@ import { filter } from 'rxjs';
     }
 
     .btn-logout:hover {
-      color: #fca5a5;
-      background: rgba(239,68,68,0.15);
+      color: var(--color-danger);
+      background: var(--color-danger-bg);
     }
 
     .sidebar-brand {
       font-size: 11px;
-      color: var(--sidebar-text-muted);
+      color: var(--color-text-muted);
       text-align: center;
       letter-spacing: 0.04em;
     }

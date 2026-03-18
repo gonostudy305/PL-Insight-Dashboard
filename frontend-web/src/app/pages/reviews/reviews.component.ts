@@ -17,7 +17,10 @@ import { ApiService } from '../../services/api.service';
 
       <div class="reviews-list">
         @for (review of reviews; track review.reviewId) {
-          <div class="review-card" [class.negative-card]="review.label === 0">
+          <div class="review-card" 
+               [class.negative-card]="review.label === 0" 
+               [class.positive]="review.label === 1"
+               [attr.data-length]="review.text?.length < 100 ? 'short' : 'long'">
             <div class="review-header">
               <span class="review-stars">
                 @for (s of getStarsArray(review.stars); track s) {
@@ -98,14 +101,30 @@ import { ApiService } from '../../services/api.service';
       cursor: pointer;
     }
 
+    .review-card[data-length="short"] {
+      padding: 0.875rem 1.25rem;
+      border-left-width: 3px;
+    }
+
+    .review-card[data-length="long"] {
+      padding: 1.5rem 1.5rem;
+      border-left-width: 5px;
+      background: #FAFAFA;
+    }
+
+    .negative-card {
+      border-left-color: #C62828 !important;
+      background: #FFF8F8 !important;
+    }
+
+    .review-card.positive {
+      border-left-color: #2E5C2A !important;
+    }
+
     .review-card:hover {
       box-shadow: var(--shadow-card-hover);
       transform: translateY(-1px);
       border-color: transparent;
-    }
-
-    .negative-card {
-      border-left: 4px solid var(--color-danger);
     }
 
     .review-header {
@@ -123,9 +142,10 @@ import { ApiService } from '../../services/api.service';
 
     .review-badge {
       padding: 3px 10px;
-      border-radius: var(--radius-full);
+      border-radius: 3px;
       font-size: var(--font-size-xs);
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
     .badge-positive { background: var(--color-success-bg); color: var(--color-success); }
@@ -142,8 +162,10 @@ import { ApiService } from '../../services/api.service';
     .review-text {
       font-size: var(--font-size-base);
       color: var(--color-text);
-      line-height: 1.7;
+      line-height: 1.65;
       margin-bottom: var(--space-3);
+      text-align: justify;
+      hyphens: auto;
     }
 
     .review-meta {

@@ -44,4 +44,10 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./pages/alerts/alerts.component').then(m => m.AlertsComponent),
     },
+    {
+        path: 'map',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./pages/map/map.component').then(m => m.MapComponent),
+    },
 ];
