@@ -14,18 +14,36 @@ import { ApiService } from '../../services/api.service';
           <h2 class="page-title">Smart Alert System</h2>
           <p class="page-subtitle">Cảnh báo thông minh & quản lý vòng đời xử lý</p>
         </div>
-        <button class="scan-btn" (click)="runTriggerScan()" [disabled]="scanning">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-          {{ scanning ? 'Scanning...' : 'Trigger Scan' }}
-        </button>
+        <div class="header-actions">
+          <div class="telegram-status" [class.connected]="telegramConnected">
+            <span class="tg-dot"></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+            {{ telegramConnected ? 'Telegram Connected' : 'Telegram N/A' }}
+            <button class="tg-test-btn" *ngIf="telegramConnected" (click)="testTelegram()" [disabled]="testingTelegram" title="Gửi thông báo test">
+              {{ testingTelegram ? '...' : 'Test' }}
+            </button>
+          </div>
+          <button class="scan-btn" (click)="runTriggerScan()" [disabled]="scanning">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            {{ scanning ? 'Scanning...' : 'Trigger Scan' }}
+          </button>
+        </div>
       </div>
 
-      <!-- Scan Result Banner -->
+      <!-- Result Banners -->
       <div class="scan-banner" *ngIf="scanResult">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         <span>Tạo mới: <strong>{{ scanResult.created }}</strong></span>
         <span>Bỏ qua (cooldown): {{ scanResult.skipped }}</span>
+        <span *ngIf="scanResult.alerts?.length > 0" class="notif-sent">📩 Đã gửi {{ scanResult.alerts.length }} alert qua Telegram</span>
         <button class="close-banner" (click)="scanResult = null">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="scan-banner tg-banner" *ngIf="telegramTestResult">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+        <span>{{ telegramTestResult.success ? '✅ Test alert gửi thành công!' : '❌ Gửi thất bại: ' + (telegramTestResult.error || 'Unknown') }}</span>
+        <button class="close-banner" (click)="telegramTestResult = null">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
         </button>
       </div>
@@ -215,6 +233,68 @@ import { ApiService } from '../../services/api.service';
     }
 
     .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .telegram-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+    }
+
+    .telegram-status.connected {
+      color: #059669;
+      background: #ecfdf5;
+      border-color: rgba(5, 150, 105, 0.2);
+    }
+
+    .tg-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+
+    .telegram-status.connected .tg-dot {
+      background: #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    .tg-test-btn {
+      margin-left: 4px;
+      padding: 2px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(5, 150, 105, 0.3);
+      background: white;
+      color: #059669;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .tg-test-btn:hover:not(:disabled) { background: #ecfdf5; }
+    .tg-test-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .tg-banner {
+      background: #eff6ff !important;
+      border-color: rgba(59, 130, 246, 0.2) !important;
+    }
+
+    .notif-sent {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
 
     .scan-banner {
       display: flex;
@@ -570,12 +650,38 @@ export class AlertsComponent implements OnInit {
   historyFilter = '';
   scanning = false;
   scanResult: any = null;
+  telegramConnected = false;
+  testingTelegram = false;
+  telegramTestResult: any = null;
 
   constructor(private api: ApiService) { }
 
   ngOnInit() {
     this.loadQueue();
     this.loadHistory();
+    this.checkTelegram();
+  }
+
+  checkTelegram() {
+    this.api.getTelegramStatus().subscribe({
+      next: data => this.telegramConnected = data.configured,
+      error: () => this.telegramConnected = false,
+    });
+  }
+
+  testTelegram() {
+    this.testingTelegram = true;
+    this.telegramTestResult = null;
+    this.api.testTelegramNotify().subscribe({
+      next: result => {
+        this.telegramTestResult = result;
+        this.testingTelegram = false;
+      },
+      error: err => {
+        this.telegramTestResult = { success: false, error: err.message };
+        this.testingTelegram = false;
+      },
+    });
   }
 
   loadQueue() {

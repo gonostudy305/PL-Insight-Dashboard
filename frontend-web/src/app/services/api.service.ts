@@ -110,6 +110,15 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/analytics/keywords`);
     }
 
+    // ── Telegram ──
+    getTelegramStatus(): Observable<any> {
+        return this.http.get(`${this.baseUrl}/alerts/telegram-status`);
+    }
+
+    testTelegramNotify(): Observable<any> {
+        return this.http.post(`${this.baseUrl}/alerts/test-notify`, {});
+    }
+
     // ── Health ──
     getHealth(): Observable<any> {
         return this.http.get(`${this.baseUrl}/health`);

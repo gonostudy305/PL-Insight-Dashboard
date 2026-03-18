@@ -34,11 +34,13 @@ async function connectDB() {
 // ── Routes ──
 
 // Import route modules
+const authRouter = require('./routes/auth');
 const reviewsRouter = require('./routes/reviews');
 const branchesRouter = require('./routes/branches');
 const analyticsRouter = require('./routes/analytics');
 const alertsRouter = require('./routes/alerts');
 const liveMonitorRouter = require('./routes/live-monitor');
+const authMiddleware = require('./middleware/auth-middleware');
 
 // Pass db to routes via app.locals
 app.use((req, res, next) => {
@@ -47,13 +49,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api/reviews', reviewsRouter);
-app.use('/api/branches', branchesRouter);
-app.use('/api/analytics', analyticsRouter);
-app.use('/api/alerts', alertsRouter);
-app.use('/api/live-monitor', liveMonitorRouter);
-
-// Health check
+// Health check (public)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -61,6 +57,16 @@ app.get('/api/health', (req, res) => {
     ai_server: AI_SERVER_URL,
   });
 });
+
+// Auth routes (public)
+app.use('/api/auth', authRouter);
+
+// Protected routes — require JWT
+app.use('/api/reviews', authMiddleware, reviewsRouter);
+app.use('/api/branches', authMiddleware, branchesRouter);
+app.use('/api/analytics', authMiddleware, analyticsRouter);
+app.use('/api/alerts', authMiddleware, alertsRouter);
+app.use('/api/live-monitor', authMiddleware, liveMonitorRouter);
 
 // ── Start ──
 connectDB().then(() => {
