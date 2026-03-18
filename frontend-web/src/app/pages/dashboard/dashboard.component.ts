@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 
 @Component({
-    selector: 'app-dashboard',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="dashboard">
       <h2 class="page-title">Tổng quan hệ thống</h2>
       <p class="page-subtitle">Phúc Long Coffee & Tea — Khu vực Hà Nội</p>
@@ -16,28 +16,28 @@ import { ApiService } from '../../services/api.service';
         <div class="kpi-card positive">
           <div class="kpi-icon">😊</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ overview?.sentiment_score }}%</span>
+            <span class="kpi-value">{{ overview?.sentimentScore }}%</span>
             <span class="kpi-label">Sentiment Score</span>
           </div>
         </div>
         <div class="kpi-card neutral">
           <div class="kpi-icon">⭐</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ overview?.avg_stars }}</span>
+            <span class="kpi-value">{{ overview?.avgStars }}</span>
             <span class="kpi-label">Điểm TB</span>
           </div>
         </div>
         <div class="kpi-card negative">
           <div class="kpi-icon">📉</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ overview?.negative_rate }}%</span>
+            <span class="kpi-value">{{ overview?.negativeRate }}%</span>
             <span class="kpi-label">Tỷ lệ tiêu cực</span>
           </div>
         </div>
         <div class="kpi-card info">
           <div class="kpi-icon">💚</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ overview?.health_score }}</span>
+            <span class="kpi-value">{{ overview?.healthScore }}</span>
             <span class="kpi-label">Health Score</span>
           </div>
         </div>
@@ -46,19 +46,19 @@ import { ApiService } from '../../services/api.service';
       <!-- Stats Row -->
       <div class="stats-row">
         <div class="stat-box">
-          <span class="stat-number">{{ overview?.total_reviews | number }}</span>
+          <span class="stat-number">{{ overview?.totalReviews | number }}</span>
           <span class="stat-label">Tổng đánh giá</span>
         </div>
         <div class="stat-box">
-          <span class="stat-number positive-text">{{ overview?.positive_count | number }}</span>
+          <span class="stat-number positive-text">{{ overview?.positiveCount | number }}</span>
           <span class="stat-label">Tích cực</span>
         </div>
         <div class="stat-box">
-          <span class="stat-number negative-text">{{ overview?.negative_count | number }}</span>
+          <span class="stat-number negative-text">{{ overview?.negativeCount | number }}</span>
           <span class="stat-label">Tiêu cực</span>
         </div>
         <div class="stat-box">
-          <span class="stat-number">{{ overview?.response_rate }}%</span>
+          <span class="stat-number">{{ overview?.responseRate }}%</span>
           <span class="stat-label">Tỷ lệ phản hồi</span>
         </div>
       </div>
@@ -86,21 +86,21 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Branch Ranking -->
       <div class="section">
-        <h3 class="section-title">Xếp hạng chi nhánh (Health Score)</h3>
+        <h3 class="section-title">Xếp hạng chi nhánh (Health Score — thấp → cao)</h3>
         <div class="branch-list">
-          @for (branch of branches?.data?.slice(0, 10); track branch._id; let i = $index) {
+          @for (branch of branches?.data?.slice(0, 10); track branch.placeId; let i = $index) {
             <div class="branch-item">
-              <span class="branch-rank" [class.top-rank]="i < 3">{{ i + 1 }}</span>
-              <span class="branch-name">{{ branch._id }}</span>
-              <span class="branch-score">{{ branch.health_score?.toFixed(2) }}</span>
-              <span class="branch-stars">⭐ {{ branch.avg_stars?.toFixed(2) }}</span>
+              <span class="branch-rank" [class.risk-rank]="i < 3">{{ i + 1 }}</span>
+              <span class="branch-name">{{ branch.branchAddress }}</span>
+              <span class="branch-score" [class.low-score]="branch.healthScore < 2">{{ branch.healthScore }}</span>
+              <span class="branch-stars">⭐ {{ branch.avgStars }}</span>
             </div>
           }
         </div>
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .dashboard { max-width: 1200px; }
 
     .page-title {
@@ -149,22 +149,11 @@ import { ApiService } from '../../services/api.service';
 
     .kpi-icon { font-size: 32px; }
 
-    .kpi-content {
-      display: flex;
-      flex-direction: column;
-    }
+    .kpi-content { display: flex; flex-direction: column; }
 
-    .kpi-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #f4f4f5;
-    }
+    .kpi-value { font-size: 28px; font-weight: 700; color: #f4f4f5; }
 
-    .kpi-label {
-      font-size: 13px;
-      color: #71717a;
-      margin-top: 2px;
-    }
+    .kpi-label { font-size: 13px; color: #71717a; margin-top: 2px; }
 
     .stats-row {
       display: grid;
@@ -181,31 +170,14 @@ import { ApiService } from '../../services/api.service';
       text-align: center;
     }
 
-    .stat-number {
-      display: block;
-      font-size: 22px;
-      font-weight: 600;
-      color: #e4e4e7;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: #71717a;
-    }
-
+    .stat-number { display: block; font-size: 22px; font-weight: 600; color: #e4e4e7; }
+    .stat-label { font-size: 12px; color: #71717a; }
     .positive-text { color: #22c55e !important; }
     .negative-text { color: #ef4444 !important; }
 
-    .section {
-      margin-bottom: 32px;
-    }
+    .section { margin-bottom: 32px; }
 
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #d4d4d8;
-      margin-bottom: 16px;
-    }
+    .section-title { font-size: 18px; font-weight: 600; color: #d4d4d8; margin-bottom: 16px; }
 
     .distribution-bars {
       background: rgba(255,255,255,0.02);
@@ -214,54 +186,28 @@ import { ApiService } from '../../services/api.service';
       padding: 20px;
     }
 
-    .bar-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .bar-label {
-      width: 50px;
-      font-size: 13px;
-      color: #a1a1aa;
-    }
+    .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .bar-label { width: 50px; font-size: 13px; color: #a1a1aa; }
 
     .bar-track {
-      flex: 1;
-      height: 24px;
+      flex: 1; height: 24px;
       background: rgba(255,255,255,0.04);
-      border-radius: 6px;
-      overflow: hidden;
+      border-radius: 6px; overflow: hidden;
     }
 
-    .bar-fill {
-      height: 100%;
-      border-radius: 6px;
-      transition: width 0.6s ease;
-    }
-
+    .bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
     .bar-positive { background: linear-gradient(90deg, #22c55e, #16a34a); }
     .bar-negative { background: linear-gradient(90deg, #ef4444, #dc2626); }
-
-    .bar-count {
-      width: 60px;
-      text-align: right;
-      font-size: 13px;
-      color: #a1a1aa;
-    }
+    .bar-count { width: 60px; text-align: right; font-size: 13px; color: #a1a1aa; }
 
     .branch-list {
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.04);
-      border-radius: 12px;
-      overflow: hidden;
+      border-radius: 12px; overflow: hidden;
     }
 
     .branch-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+      display: flex; align-items: center; gap: 16px;
       padding: 14px 20px;
       border-bottom: 1px solid rgba(255,255,255,0.03);
       transition: background 0.15s;
@@ -271,57 +217,35 @@ import { ApiService } from '../../services/api.service';
     .branch-item:last-child { border-bottom: none; }
 
     .branch-rank {
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      background: rgba(255,255,255,0.05);
-      color: #a1a1aa;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      background: rgba(255,255,255,0.05); color: #a1a1aa;
     }
 
-    .top-rank {
-      background: rgba(34, 197, 94, 0.15);
-      color: #22c55e;
-    }
-
-    .branch-name {
-      flex: 1;
-      font-size: 14px;
-      color: #d4d4d8;
-    }
-
-    .branch-score {
-      font-size: 14px;
-      font-weight: 600;
-      color: #22c55e;
-    }
-
-    .branch-stars {
-      font-size: 13px;
-      color: #a1a1aa;
-    }
+    .risk-rank { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .branch-name { flex: 1; font-size: 14px; color: #d4d4d8; }
+    .branch-score { font-size: 14px; font-weight: 600; color: #22c55e; }
+    .low-score { color: #ef4444 !important; }
+    .branch-stars { font-size: 13px; color: #a1a1aa; }
   `],
 })
 export class DashboardComponent implements OnInit {
-    overview: any = null;
-    distribution: any[] = [];
-    branches: any = null;
+  overview: any = null;
+  distribution: any[] = [];
+  branches: any = null;
 
-    constructor(private api: ApiService) { }
+  constructor(private api: ApiService) { }
 
-    ngOnInit() {
-        this.api.getOverview().subscribe(data => this.overview = data);
-        this.api.getDistribution().subscribe(data => this.distribution = data);
-        this.api.getBranches().subscribe(data => this.branches = data);
-    }
+  ngOnInit() {
+    this.api.getOverview().subscribe(data => this.overview = data);
+    this.api.getDistribution().subscribe(data => this.distribution = data);
+    this.api.getBranches().subscribe(data => this.branches = data);
+  }
 
-    getBarWidth(count: number): number {
-        if (!this.distribution.length) return 0;
-        const max = Math.max(...this.distribution.map((d: any) => d.count));
-        return (count / max) * 100;
-    }
+  getBarWidth(count: number): number {
+    if (!this.distribution.length) return 0;
+    const max = Math.max(...this.distribution.map((d: any) => d.count));
+    return (count / max) * 100;
+  }
 }
