@@ -7,6 +7,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const cron = require('node-cron');
+const { runTriggerScan, sendNotification } = require('./services/alert-engine');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +42,8 @@ const branchesRouter = require('./routes/branches');
 const analyticsRouter = require('./routes/analytics');
 const alertsRouter = require('./routes/alerts');
 const liveMonitorRouter = require('./routes/live-monitor');
+const reportsRouter = require('./routes/reports');
+const suggestionsRouter = require('./routes/suggestions');
 const authMiddleware = require('./middleware/auth-middleware');
 
 // Pass db to routes via app.locals
@@ -67,10 +71,52 @@ app.use('/api/branches', authMiddleware, branchesRouter);
 app.use('/api/analytics', authMiddleware, analyticsRouter);
 app.use('/api/alerts', authMiddleware, alertsRouter);
 app.use('/api/live-monitor', authMiddleware, liveMonitorRouter);
+app.use('/api/reports', authMiddleware, reportsRouter);
+app.use('/api/suggestions', authMiddleware, suggestionsRouter);
 
 // ── Start ──
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 PL-Insight Backend running on http://localhost:${PORT}`);
   });
+
+  // ── Scheduled Trigger Scan ──
+  const ENABLE_SCAN = process.env.ENABLE_SCHEDULED_SCAN !== 'false'; // default: enabled
+  const SCAN_CRON = process.env.SCAN_CRON || '*/15 * * * *'; // default: every 15 min
+
+  if (ENABLE_SCAN && cron.validate(SCAN_CRON)) {
+    cron.schedule(SCAN_CRON, async () => {
+      const timestamp = new Date().toISOString();
+      console.log(`[cron] ${timestamp} — Running scheduled trigger scan...`);
+      try {
+        const result = await runTriggerScan(db);
+        let notified = 0, failed = 0;
+
+        for (const alert of result.alerts) {
+          try {
+            const notif = await sendNotification(alert);
+            if (notif.sent) {
+              await db.collection('alert_history').updateOne(
+                { alertId: alert.alertId },
+                { $set: { notified: true } }
+              );
+              notified++;
+            } else {
+              failed++;
+            }
+          } catch (e) {
+            console.error(`[cron] Notify error for ${alert.alertId}: ${e.message}`);
+            failed++;
+          }
+        }
+
+        console.log(`[cron] ✅ created=${result.created} skipped=${result.skipped} notified=${notified} failed=${failed}`);
+      } catch (err) {
+        console.error(`[cron] ❌ Scan error: ${err.message}`);
+      }
+    });
+    console.log(`⏰ Scheduled scan enabled: ${SCAN_CRON}`);
+  } else {
+    console.log(`⏸️ Scheduled scan disabled`);
+  }
 });

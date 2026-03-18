@@ -119,6 +119,11 @@ export class ApiService {
         return this.http.post(`${this.baseUrl}/alerts/test-notify`, {});
     }
 
+    // ── Suggestions ──
+    getSuggestions(reviewId: string): Observable<any> {
+        return this.http.get(`${this.baseUrl}/suggestions/${encodeURIComponent(reviewId)}`);
+    }
+
     // ── Health ──
     getHealth(): Observable<any> {
         return this.http.get(`${this.baseUrl}/health`);

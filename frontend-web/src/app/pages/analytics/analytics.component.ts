@@ -56,8 +56,7 @@ Chart.register(...registerables);
               </div>
               @for (m of heatmapMetrics; track m.key) {
                 <div class="hm-cell"
-                  [style.background]="getCellColor(d[m.key], m.key, d.lowSample)"
-                  [style.color]="getCellTextColor(d[m.key], m.key, d.lowSample)"
+                  [class]="getCellClass(d[m.key], m.key, d.lowSample)"
                   [style.opacity]="d.lowSample ? '0.55' : '1'"
                   [title]="getCellTooltip(d, m)">
                   {{ formatCellValue(d[m.key], m.key) }}
@@ -238,8 +237,10 @@ Chart.register(...registerables);
 
     /* ===== GRID HEATMAP ===== */
     .heatmap-wrap {
-      padding: var(--space-4) var(--space-5);
+      padding: 0 var(--space-5) var(--space-4) var(--space-5);
       overflow-x: auto;
+      overflow-y: auto;
+      max-height: 500px;
     }
 
     .heatmap-grid {
@@ -257,31 +258,47 @@ Chart.register(...registerables);
       padding: 8px 10px;
       display: flex;
       align-items: flex-end;
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 20;
+      background: #F5F5F5;
+      border-bottom: 2px solid #BDBDBD;
+      border-right: 1px solid var(--color-border-light);
     }
 
     .hm-col-header {
-      font-size: 11px;
+      background: #F5F5F5;
+      border-bottom: 2px solid #BDBDBD;
+      font-size: 0.75rem;
       font-weight: 700;
-      color: var(--color-text-muted);
+      color: #424242;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 1px;
       text-align: center;
-      padding: 8px 4px;
+      padding: 0.625rem 0.5rem;
       display: flex;
       align-items: flex-end;
       justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .hm-row-label {
       font-size: 13px;
       font-weight: 600;
       color: var(--color-text);
-      padding: 8px 10px;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       gap: 4px;
       white-space: nowrap;
-      border-radius: 6px 0 0 6px;
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border-light);
     }
 
     .hm-row-label.low-sample {
@@ -295,18 +312,27 @@ Chart.register(...registerables);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 10px 4px;
-      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+      padding: 6px 2px;
+      border-radius: 2px;
       transition: all 0.15s ease;
       cursor: default;
-      min-height: 40px;
+      min-height: 32px;
     }
 
+    .hm-cell.risk-high { background: #C62828; color: #fff; font-weight: 700; }
+    .hm-cell.risk-medium { background: #F9A825; color: #333; font-weight: 600; }
+    .hm-cell.risk-low { background: #E8F5E9; color: #2E7D32; font-weight: 500; }
+    /* Volume styles are handled dynamically, or use default */
+    .hm-cell.volume-high { background: #4f46e5; color: #fff; font-weight: 700; }
+    .hm-cell.volume-mid { background: #818cf8; color: #fff; font-weight: 600; }
+    .hm-cell.volume-low { background: #e0e7ff; color: #312e81; font-weight: 500; }
+
     .hm-cell:hover {
-      transform: scale(1.08);
+      transform: scale(1.05);
       box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      outline: 1px solid #F9A825;
       z-index: 2;
       position: relative;
     }
@@ -483,77 +509,25 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
     return Math.max(0, Math.min(1, (value - range.min) / (range.max - range.min)));
   }
 
-  /**
-   * Quality scale: green (#22c55e) = good → red (#ef4444) = bad
-   * - For "invert: true" metrics (negativeRate, riskScore): high value = bad = red
-   * - For "invert: false" metrics (avgStars, healthScore): high value = good = green
-   *
-   * Volume scale: neutral indigo gradient (light → dark)
-   */
-  getCellColor(value: number, key: string, lowSample: boolean): string {
+  /** Returns discrete CSS class names instead of gradients */
+  getCellClass(value: number, key: string, lowSample: boolean): string {
     const metric = this.heatmapMetrics.find(m => m.key === key);
-    if (!metric) return '#f1f5f9';
+    if (!metric) return '';
 
     const norm = this.getNorm(value, key);
 
     if (metric.type === 'volume') {
-      // Neutral indigo scale: light (#e0e7ff) → dark (#4f46e5)
-      const r = Math.round(224 + (79 - 224) * norm);
-      const g = Math.round(231 + (70 - 231) * norm);
-      const b = Math.round(255 + (229 - 255) * norm);
-      return `rgb(${r}, ${g}, ${b})`;
+      if (norm > 0.6) return 'volume-high';
+      if (norm > 0.2) return 'volume-mid';
+      return 'volume-low';
     }
 
-    // Quality scale → map to "badness" (0 = good/green, 1 = bad/red)
     let badness: number;
-    if (metric.invert) {
-      badness = norm; // high negativeRate/riskScore = bad
-    } else {
-      badness = 1 - norm; // high avgStars/health = good
-    }
-
-    // 5-stop gradient: green → lime → yellow → orange → red
-    const stops = [
-      { pos: 0.0, r: 34, g: 197, b: 94 },   // green = good
-      { pos: 0.25, r: 163, g: 230, b: 53 },  // lime
-      { pos: 0.5, r: 250, g: 204, b: 21 },   // yellow
-      { pos: 0.75, r: 251, g: 146, b: 60 },   // orange
-      { pos: 1.0, r: 239, g: 68, b: 68 },    // red = bad
-    ];
-
-    let lower = stops[0], upper = stops[stops.length - 1];
-    for (let i = 0; i < stops.length - 1; i++) {
-      if (badness >= stops[i].pos && badness <= stops[i + 1].pos) {
-        lower = stops[i];
-        upper = stops[i + 1];
-        break;
-      }
-    }
-
-    const range = upper.pos - lower.pos || 1;
-    const t = (badness - lower.pos) / range;
-
-    const r = Math.round(lower.r + (upper.r - lower.r) * t);
-    const g = Math.round(lower.g + (upper.g - lower.g) * t);
-    const b = Math.round(lower.b + (upper.b - lower.b) * t);
-
-    return `rgb(${r}, ${g}, ${b})`;
-  }
-
-  getCellTextColor(value: number, key: string, lowSample: boolean): string {
-    const metric = this.heatmapMetrics.find(m => m.key === key);
-    if (!metric) return '#1a1a1a';
-
-    if (metric.type === 'volume') {
-      const norm = this.getNorm(value, key);
-      return norm > 0.5 ? '#fff' : '#312e81';
-    }
-
-    // Quality: dark text except at saturated ends
-    let badness: number;
-    const norm = this.getNorm(value, key);
     if (metric.invert) { badness = norm; } else { badness = 1 - norm; }
-    return (badness < 0.15 || badness > 0.75) ? '#fff' : '#1a1a1a';
+
+    if (badness > 0.65) return 'risk-high';
+    if (badness > 0.3) return 'risk-medium';
+    return 'risk-low';
   }
 
   formatCellValue(value: number, key: string): string {

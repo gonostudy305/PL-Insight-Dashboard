@@ -59,7 +59,8 @@ import { ApiService } from '../../services/api.service';
           <div class="review-card"
             [class.positive]="review.aiSentimentSummary === 'Positive'"
             [class.negative]="review.aiSentimentSummary === 'Negative'"
-            [class.mixed]="review.aiSentimentSummary === 'Mixed'">
+            [class.mixed]="review.aiSentimentSummary === 'Mixed'"
+            [attr.data-length]="review.text?.length < 100 ? 'short' : 'long'">
             <div class="card-header">
               <span class="sentiment-badge"
                 [class.badge-positive]="review.aiSentimentSummary === 'Positive'"
@@ -76,17 +77,11 @@ import { ApiService } from '../../services/api.service';
             <p class="review-text">{{ review.text }}</p>
 
             <div class="card-meta">
-              <div class="confidence-wrap">
-                <span class="conf-label">Confidence</span>
-                <div class="confidence-bar">
-                  <div class="confidence-fill"
-                    [class.high-conf]="review.confidenceAvg >= 0.8"
-                    [class.mid-conf]="review.confidenceAvg >= 0.5 && review.confidenceAvg < 0.8"
-                    [class.low-conf]="review.confidenceAvg < 0.5"
-                    [style.width.%]="review.confidenceAvg * 100">
-                  </div>
-                </div>
-                <span class="conf-value">{{ (review.confidenceAvg * 100).toFixed(1) }}%</span>
+              <div class="confidence-display"
+                [class.high]="review.confidenceAvg >= 0.8"
+                [class.mid]="review.confidenceAvg >= 0.5 && review.confidenceAvg < 0.8"
+                [class.low]="review.confidenceAvg < 0.5">
+                Độ tin cậy: {{ (review.confidenceAvg * 100).toFixed(1) }}%
               </div>
               <span class="branch-tag">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
@@ -221,6 +216,11 @@ import { ApiService } from '../../services/api.service';
       align-items: center;
       gap: var(--space-3);
       margin-bottom: var(--space-5);
+      position: sticky;
+      top: 0;
+      background: var(--color-bg);
+      padding: var(--space-3) 0;
+      z-index: 50;
     }
 
     .filter-row select {
@@ -248,14 +248,31 @@ import { ApiService } from '../../services/api.service';
       border: 1px solid var(--color-border);
     }
 
-    .review-list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .review-list { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); 
+      gap: var(--space-4); 
+    }
 
     .review-card {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
       transition: all var(--transition-base);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .review-card[data-length="short"] {
+      padding: var(--space-3) var(--space-4);
+      border-left-width: 4px;
+    }
+
+    .review-card[data-length="long"] {
+      padding: var(--space-4);
+      border-left-width: 4px;
+      background: var(--color-bg);
     }
 
     .review-card:hover {
@@ -263,9 +280,9 @@ import { ApiService } from '../../services/api.service';
       transform: translateY(-1px);
     }
 
-    .review-card.positive { border-left: 4px solid var(--color-success); }
-    .review-card.negative { border-left: 4px solid var(--color-danger); }
-    .review-card.mixed { border-left: 4px solid var(--color-warning); }
+    .review-card.positive { border-left-color: #2E5C2A; }
+    .review-card.negative { border-left-color: #C62828; background: #FFF8F8; }
+    .review-card.mixed { border-left-color: var(--color-warning); }
 
     .card-header {
       display: flex;
@@ -277,9 +294,10 @@ import { ApiService } from '../../services/api.service';
 
     .sentiment-badge {
       padding: 4px 12px;
-      border-radius: var(--radius-full);
+      border-radius: 3px;
       font-size: var(--font-size-xs);
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
     .badge-positive { background: var(--color-success-bg); color: var(--color-success); }
@@ -288,16 +306,18 @@ import { ApiService } from '../../services/api.service';
 
     .ai-label { font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 500; }
     .stars { font-size: var(--font-size-sm); color: var(--color-accent); }
-    .time { margin-left: auto; font-size: var(--font-size-xs); color: var(--color-text-muted); }
+    .time { margin-left: auto; font-style: italic; color: #666; font-size: 0.85rem; }
 
     .review-text {
       font-size: var(--font-size-base);
-      line-height: 1.7;
+      line-height: 1.65;
       color: var(--color-text);
       margin-bottom: var(--space-3);
       max-height: 80px;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-align: justify;
+      hyphens: auto;
     }
 
     .card-meta {
@@ -307,22 +327,17 @@ import { ApiService } from '../../services/api.service';
       flex-wrap: wrap;
     }
 
-    .confidence-wrap { display: flex; align-items: center; gap: 8px; }
-    .conf-label { font-size: 11px; color: var(--color-text-muted); }
-
-    .confidence-bar {
-      width: 80px;
-      height: 6px;
+    .confidence-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
       border-radius: 3px;
-      background: var(--color-bg);
-      overflow: hidden;
     }
-
-    .confidence-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-    .high-conf { background: var(--color-success); }
-    .mid-conf { background: var(--color-warning); }
-    .low-conf { background: var(--color-danger); }
-    .conf-value { font-size: var(--font-size-xs); color: var(--color-text-secondary); font-weight: 600; }
+    .confidence-display.high { color: #155724; background: #d4edda; padding: 2px 8px; }
+    .confidence-display.mid  { color: #856404; background: #fff3cd; padding: 2px 8px; }
+    .confidence-display.low  { color: #721c24; background: #f8d7da; padding: 2px 8px; }
 
     .branch-tag, .keywords-tag, .translated-tag {
       font-size: var(--font-size-xs);

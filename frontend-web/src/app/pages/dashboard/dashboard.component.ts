@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -12,15 +13,60 @@ Chart.register(...registerables);
   imports: [CommonModule, RouterModule],
   template: `
     <div class="dashboard">
+      <div class="director-header">
+        <div class="status-bar">
+          <span class="kpi-inline">
+            <strong>{{ overview?.sentimentScore || '—' }}%</strong> Sentiment
+          </span>
+          <span class="divider">|</span>
+          <span class="kpi-inline negative">
+            <strong>{{ overview?.negativeCount || '0' }}</strong> Cảnh báo today
+          </span>
+          <span class="divider">|</span>
+          <span class="kpi-inline">
+            <strong>{{ overview?.avgStars || '—' }}★</strong> Điểm TB
+          </span>
+          <span class="cta">
+            <button class="btn-action" routerLink="/alerts">Xem chi tiết →</button>
+          </span>
+        </div>
+      </div>
+
       <!-- Page Header -->
       <div class="page-header">
         <div>
           <h2 class="page-title">Tổng quan hệ thống</h2>
           <p class="page-subtitle">Phúc Long Coffee & Tea — Khu vực Hà Nội</p>
         </div>
-        <div class="header-badge">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span>Cập nhật lần cuối: Hôm nay</span>
+        <div class="header-actions">
+          <div class="header-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Cập nhật lần cuối: Hôm nay</span>
+          </div>
+          <div class="report-dropdown">
+            <button class="report-btn" (click)="showReportMenu = !showReportMenu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Xuất báo cáo
+            </button>
+            <div class="report-menu" *ngIf="showReportMenu">
+              <a class="report-item" (click)="downloadReport('weekly', 'pdf'); showReportMenu = false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Báo cáo Tuần (PDF)
+              </a>
+              <a class="report-item" (click)="downloadReport('weekly', 'xlsx'); showReportMenu = false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="17"/><line x1="16" y1="13" x2="8" y2="17"/></svg>
+                Báo cáo Tuần (Excel)
+              </a>
+              <a class="report-item" (click)="downloadReport('monthly', 'pdf'); showReportMenu = false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Báo cáo Tháng (PDF)
+              </a>
+              <a class="report-item" (click)="downloadReport('monthly', 'xlsx'); showReportMenu = false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="17"/><line x1="16" y1="13" x2="8" y2="17"/></svg>
+                Báo cáo Tháng (Excel)
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -182,6 +228,45 @@ Chart.register(...registerables);
       animation: fadeInUp 0.4s ease-out;
     }
 
+    /* ─── Director Sticky Status Bar ─── */
+    .status-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--pl-primary);
+      color: white;
+      padding: 0.625rem var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      font-size: 0.9375rem;
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .status-bar .kpi-inline strong { font-size: 1.125rem; font-family: var(--font-mono); }
+    .status-bar .kpi-inline.negative strong { color: #FFB74D; }
+    .status-bar .divider { opacity: 0.4; }
+    
+    .status-bar .cta {
+      margin-left: auto;
+    }
+
+    .status-bar .btn-action {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: var(--radius-sm);
+      padding: 0.375rem 0.875rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .status-bar .btn-action:hover { background: rgba(255,255,255,0.25); }
+
     /* ─── Page Header ─── */
     .page-header {
       display: flex;
@@ -215,11 +300,11 @@ Chart.register(...registerables);
       color: var(--color-text-muted);
     }
 
-    /* ─── KPI Cards ─── */
+    /* ─── KPI Cards (Pro Layout) ─── */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: var(--space-5);
+      grid-template-columns: 1.4fr 1fr 1.2fr 0.9fr;
+      gap: 1.25rem;
       margin-bottom: var(--space-6);
     }
 
@@ -227,7 +312,7 @@ Chart.register(...registerables);
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-5);
       display: flex;
       align-items: center;
       gap: var(--space-4);
@@ -237,19 +322,48 @@ Chart.register(...registerables);
       overflow: hidden;
     }
 
-    .kpi-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--kpi-accent);
-      border-radius: 0 4px 4px 0;
+    /* Sentiment Score (1st card) */
+    .kpi-card:nth-child(1) {
+      padding: 2rem 1.75rem;
+      border-top: 4px solid var(--pl-dark-green);
+    }
+    .kpi-card:nth-child(1) .kpi-value {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .kpi-card:nth-child(1) .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #666;
+    }
+
+    /* Tiêu cực (3rd card) */
+    .kpi-card:nth-child(3) {
+      padding: 1.5rem 1.25rem;
+      border-top: 4px solid #C62828;
+      background: #FFF8F8;
+    }
+    .kpi-card:nth-child(3) .kpi-value {
+      font-size: 2.25rem;
+      color: #C62828;
+    }
+    .kpi-card:nth-child(3) .kpi-icon-wrap {
+      background: transparent !important;
+    }
+
+    /* Health Score (4th card) */
+    .kpi-card:nth-child(4) {
+      padding: 1.25rem 1rem;
+      border-top: 3px solid #888;
+    }
+    .kpi-card:nth-child(4) .kpi-value {
+      font-size: 1.875rem;
     }
 
     .kpi-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       box-shadow: var(--shadow-card-hover);
       border-color: transparent;
     }
@@ -574,6 +688,35 @@ Chart.register(...registerables);
         grid-template-columns: 44px 1fr 64px 64px;
       }
     }
+
+    .header-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+    .report-dropdown { position: relative; }
+
+    .report-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: var(--radius-md);
+      border: 1px solid var(--color-border); background: white;
+      color: var(--color-text); font-size: var(--font-size-sm);
+      font-weight: 600; cursor: pointer;
+      transition: all var(--transition-base);
+    }
+    .report-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+    .report-menu {
+      position: absolute; top: 100%; right: 0; margin-top: 4px;
+      background: white; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+      min-width: 200px; z-index: 50; overflow: hidden;
+    }
+
+    .report-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; font-size: 13px; font-weight: 500;
+      color: var(--color-text); cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    .report-item:hover { background: var(--color-bg); color: var(--color-primary); }
   `],
 })
 export class DashboardComponent implements OnInit {
@@ -586,7 +729,9 @@ export class DashboardComponent implements OnInit {
 
   private trendChart: Chart | null = null;
 
-  constructor(private api: ApiService) { }
+  constructor(private api: ApiService, private auth: AuthService) { }
+
+  showReportMenu = false;
 
   ngOnInit() {
     this.api.getOverview().subscribe(data => this.overview = data);
@@ -594,9 +739,31 @@ export class DashboardComponent implements OnInit {
     this.api.getBranches().subscribe(data => this.branches = data);
     this.api.getTrends().subscribe(data => {
       this.trendData = data || [];
-      // Wait for NgIf to render the canvas
       setTimeout(() => this.renderTrendChart(), 100);
     });
+  }
+
+  downloadReport(type: 'weekly' | 'monthly', format: 'pdf' | 'xlsx' = 'pdf') {
+    const token = this.auth.getToken();
+    const url = `http://localhost:3000/api/reports/${type}.${format}`;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.responseType = 'blob';
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const mimeType = format === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        const blob = new Blob([xhr.response], { type: mimeType });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `PL-Insight_${type}_${new Date().toISOString().slice(0, 10)}.${format}`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    };
+    xhr.send();
   }
 
   getBarWidth(count: number): number {

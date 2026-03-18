@@ -11,10 +11,12 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^6.12.0",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "puppeteer": "^24.39.1"
   },
   "engines": {
     "node": ">=20.0.0"
