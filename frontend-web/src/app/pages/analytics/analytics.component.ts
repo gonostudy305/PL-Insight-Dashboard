@@ -25,10 +25,10 @@ Chart.register(...registerables);
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><rect width="3" height="9" x="7" y="7"/><rect width="3" height="5" x="14" y="7"/></svg>
             Heatmap theo Quận
           </h3>
-          <div class="heatmap-legend">
-            <span class="legend-label">Thấp</span>
-            <div class="legend-gradient"></div>
-            <span class="legend-label">Cao</span>
+          <div class="heatmap-hints">
+            <span class="hint-chip good">🟢 Tốt</span>
+            <span class="hint-chip bad">🔴 Xấu</span>
+            <span class="hint-chip neutral">🔵 Volume</span>
           </div>
         </div>
         <div class="heatmap-wrap" *ngIf="districts.length > 0; else distLoading">
@@ -36,14 +36,21 @@ Chart.register(...registerables);
           <div class="heatmap-grid" [style.grid-template-columns]="'140px repeat(' + heatmapMetrics.length + ', 1fr)'">
             <div class="hm-corner">Quận</div>
             @for (m of heatmapMetrics; track m.key) {
-              <div class="hm-col-header">{{ m.label }}</div>
+              <div class="hm-col-header">
+                {{ m.label }}
+                <span class="col-hint">{{ m.hint }}</span>
+              </div>
             }
 
             <!-- Data rows -->
             @for (d of districts; track d.district) {
-              <div class="hm-row-label">{{ d.district }}</div>
+              <div class="hm-row-label" [class.small-sample]="d.totalReviews < 30">
+                {{ d.district }}
+                <span class="sample-badge" *ngIf="d.totalReviews < 30">n={{ d.totalReviews }}</span>
+              </div>
               @for (m of heatmapMetrics; track m.key) {
                 <div class="hm-cell"
+                  [class.small-sample]="d.totalReviews < 30"
                   [style.background]="getCellColor(d[m.key], m.key)"
                   [style.color]="getCellTextColor(d[m.key], m.key)"
                   [title]="m.label + ': ' + d[m.key]">
@@ -172,24 +179,43 @@ Chart.register(...registerables);
     }
 
     /* ===== GRID HEATMAP ===== */
-    .heatmap-legend {
+    .heatmap-hints {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .legend-label {
+    .hint-chip {
       font-size: 11px;
-      color: var(--color-text-muted);
       font-weight: 500;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
     }
 
-    .legend-gradient {
-      width: 120px;
-      height: 14px;
-      border-radius: 7px;
-      background: linear-gradient(90deg, #22c55e, #a3e635, #facc15, #fb923c, #ef4444);
-      border: 1px solid var(--color-border-light);
+    .hint-chip.good { background: rgba(34,197,94,0.1); color: #16a34a; }
+    .hint-chip.bad { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .hint-chip.neutral { background: rgba(59,130,246,0.1); color: #2563eb; }
+
+    .col-hint {
+      display: block;
+      font-size: 9px;
+      font-weight: 400;
+      color: var(--color-text-muted);
+      letter-spacing: 0;
+      text-transform: none;
+      margin-top: 2px;
+    }
+
+    .small-sample { opacity: 0.55; }
+
+    .sample-badge {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      margin-left: 4px;
     }
 
     .heatmap-wrap {
@@ -347,11 +373,12 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   private maxKeywordCount = 0;
 
   // Heatmap metric definitions
+  // colorScale: 'bad-high' = red when high (negRate), 'good-high' = green when high (stars, health), 'volume' = blue tonal
   heatmapMetrics = [
-    { key: 'totalReviews', label: 'Reviews', invert: false },
-    { key: 'negativeRate', label: 'Neg Rate %', invert: true },
-    { key: 'avgStars', label: 'Sao TB', invert: false },
-    { key: 'healthScore', label: 'Health', invert: false },
+    { key: 'totalReviews', label: 'Reviews', colorScale: 'volume', hint: 'nhiều → đậm' },
+    { key: 'negativeRate', label: 'Neg Rate %', colorScale: 'bad-high', hint: '↑ xấu' },
+    { key: 'avgStars', label: 'Sao TB', colorScale: 'good-high', hint: '↑ tốt' },
+    { key: 'healthScore', label: 'Health', colorScale: 'good-high', hint: '↑ tốt' },
   ];
 
   // Min/max per metric for color interpolation
@@ -410,58 +437,66 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /** Returns a 0–1 normalized value, optionally inverted */
+  /** Returns a 0–1 normalized value (0=min, 1=max in dataset) */
   private getNorm(value: number, key: string): number {
     const range = this.metricRanges[key];
     if (!range || range.max === range.min) return 0.5;
-    let norm = (value - range.min) / (range.max - range.min);
-    // For inverted metrics (negativeRate), high = bad (red), low = good (green)
-    const metric = this.heatmapMetrics.find(m => m.key === key);
-    if (metric?.invert) norm = norm; // high neg rate → high norm → red (already correct)
-    else norm = 1 - norm; // high health → low norm → we want green, so invert for the red-green scale
-    return Math.max(0, Math.min(1, norm));
+    return Math.max(0, Math.min(1, (value - range.min) / (range.max - range.min)));
   }
 
-  /**
-   * Color scale: green → yellow → orange → red
-   * norm=0 → green (#22c55e), norm=0.5 → yellow (#facc15), norm=1 → red (#ef4444)
-   */
-  getCellColor(value: number, key: string): string {
-    const norm = this.getNorm(value, key);
-
-    // 5-stop gradient: green → lime → yellow → orange → red
-    const stops = [
-      { pos: 0.0, r: 34, g: 197, b: 94 },   // #22c55e
-      { pos: 0.25, r: 163, g: 230, b: 53 },  // #a3e635
-      { pos: 0.5, r: 250, g: 204, b: 21 },   // #facc15
-      { pos: 0.75, r: 251, g: 146, b: 60 },   // #fb923c
-      { pos: 1.0, r: 239, g: 68, b: 68 },    // #ef4444
-    ];
-
-    // Find the two stops to interpolate between
+  private interpolateStops(norm: number, stops: { pos: number; r: number; g: number; b: number }[]): string {
     let lower = stops[0], upper = stops[stops.length - 1];
     for (let i = 0; i < stops.length - 1; i++) {
       if (norm >= stops[i].pos && norm <= stops[i + 1].pos) {
-        lower = stops[i];
-        upper = stops[i + 1];
-        break;
+        lower = stops[i]; upper = stops[i + 1]; break;
       }
     }
-
     const range = upper.pos - lower.pos || 1;
     const t = (norm - lower.pos) / range;
-
     const r = Math.round(lower.r + (upper.r - lower.r) * t);
     const g = Math.round(lower.g + (upper.g - lower.g) * t);
     const b = Math.round(lower.b + (upper.b - lower.b) * t);
-
     return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  getCellColor(value: number, key: string): string {
+    const norm = this.getNorm(value, key);
+    const metric = this.heatmapMetrics.find(m => m.key === key)!;
+
+    if (metric.colorScale === 'volume') {
+      // Blue tonal: light → dark blue (neutral, no good/bad)
+      return this.interpolateStops(norm, [
+        { pos: 0, r: 219, g: 234, b: 254 },  // #dbeafe very light blue
+        { pos: 0.5, r: 96, g: 165, b: 250 }, // #60a5fa mid blue
+        { pos: 1, r: 37, g: 99, b: 235 },    // #2563eb strong blue
+      ]);
+    }
+
+    if (metric.colorScale === 'bad-high') {
+      // High = bad → green to red
+      return this.interpolateStops(norm, [
+        { pos: 0, r: 34, g: 197, b: 94 },    // #22c55e green
+        { pos: 0.5, r: 250, g: 204, b: 21 }, // #facc15 yellow
+        { pos: 1, r: 239, g: 68, b: 68 },    // #ef4444 red
+      ]);
+    }
+
+    // good-high: High = good → red to green
+    return this.interpolateStops(norm, [
+      { pos: 0, r: 239, g: 68, b: 68 },    // #ef4444 red
+      { pos: 0.5, r: 250, g: 204, b: 21 }, // #facc15 yellow
+      { pos: 1, r: 34, g: 197, b: 94 },    // #22c55e green
+    ]);
   }
 
   getCellTextColor(value: number, key: string): string {
     const norm = this.getNorm(value, key);
-    // Dark text for light backgrounds (middle), white for saturated ends
-    return (norm < 0.15 || norm > 0.75) ? '#fff' : '#1a1a1a';
+    const metric = this.heatmapMetrics.find(m => m.key === key)!;
+    if (metric.colorScale === 'volume') {
+      return norm > 0.45 ? '#fff' : '#1e3a5f';
+    }
+    // For red-green scales: dark text in the yellow middle, white at saturated ends
+    return (norm < 0.2 || norm > 0.8) ? '#fff' : '#1a1a1a';
   }
 
   formatCellValue(value: number, key: string): string {
