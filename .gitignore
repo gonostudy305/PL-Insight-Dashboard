@@ -28,3 +28,10 @@ desktop.ini
 
 # Agent
 .agent/
+
+# NGINX (keep config, ignore binaries/logs)
+nginx/*.exe
+nginx/logs/
+nginx/temp/
+nginx/html/
+nginx/docs/
