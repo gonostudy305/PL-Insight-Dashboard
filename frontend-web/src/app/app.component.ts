@@ -1,12 +1,21 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { AuthService } from './services/auth.service';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-    <div class="app-layout">
+    <!-- Login page: no sidebar -->
+    <div *ngIf="isLoginPage" class="login-layout">
+      <router-outlet />
+    </div>
+
+    <!-- Dashboard pages: with sidebar -->
+    <div *ngIf="!isLoginPage" class="app-layout">
       <nav class="sidebar">
         <div class="sidebar-header">
           <div class="logo-mark">
@@ -52,6 +61,18 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
           </li>
         </ul>
         <div class="sidebar-footer">
+          <div class="user-block" *ngIf="currentUser">
+            <div class="user-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ currentUser.displayName }}</span>
+              <span class="user-role">{{ currentUser.role }}</span>
+            </div>
+            <button class="btn-logout" (click)="onLogout()" title="Đăng xuất">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+            </button>
+          </div>
           <div class="sidebar-brand">Phúc Long Coffee & Tea</div>
         </div>
       </nav>
@@ -62,6 +83,8 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   `,
   styles: [`
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    .login-layout { min-height: 100vh; }
 
     .app-layout {
       display: flex;
@@ -169,6 +192,64 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
       border-top: 1px solid var(--sidebar-border);
     }
 
+    .user-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      margin-bottom: 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--sidebar-text-muted);
+      text-transform: capitalize;
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: var(--sidebar-text-muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-logout:hover {
+      color: #fca5a5;
+      background: rgba(239,68,68,0.15);
+    }
+
     .sidebar-brand {
       font-size: 11px;
       color: var(--sidebar-text-muted);
@@ -184,4 +265,22 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
     }
   `],
 })
-export class AppComponent { }
+export class AppComponent {
+  isLoginPage = true;
+  currentUser: any = null;
+
+  constructor(private authService: AuthService, private router: Router) {
+    this.currentUser = this.authService.getUser();
+
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe((e: any) => {
+      this.isLoginPage = e.urlAfterRedirects === '/login';
+      this.currentUser = this.authService.getUser();
+    });
+  }
+
+  onLogout() {
+    this.authService.logout();
+  }
+}

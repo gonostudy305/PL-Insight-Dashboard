@@ -226,4 +226,32 @@ router.patch('/:alertId/status', async (req, res) => {
     }
 });
 
+// GET /api/alerts/telegram-status — Check if Telegram is configured
+router.get('/telegram-status', (req, res) => {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    res.json({
+        configured: !!(token && chatId),
+        chatId: chatId ? chatId.replace(/./g, (c, i) => i < 3 ? c : '*') : null,
+    });
+});
+
+// POST /api/alerts/test-notify — Send a test alert to Telegram (E2E verification)
+router.post('/test-notify', async (req, res) => {
+    try {
+        const testAlert = {
+            alertId: `TEST-${Date.now()}`,
+            branchAddress: 'Test Branch — Phúc Long Thái Hà',
+            district: 'Đống Đa',
+            triggerRule: '>3 negative reviews in 1h',
+            triggerCount: 5,
+            createdAt: new Date(),
+        };
+        const result = await sendNotification(testAlert);
+        res.json({ success: result.sent, ...result });
+    } catch (err) {
+        errorResponse(res, 500, 'ERR_TEST_NOTIFY', err.message);
+    }
+});
+
 module.exports = router;
