@@ -196,4 +196,102 @@ router.get('/by-session', async (req, res) => {
     }
 });
 
+// GET /api/analytics/district-heatmap — Negative rate by district
+router.get('/district-heatmap', async (req, res) => {
+    try {
+        const collection = req.db.collection('Master_Final_Analysis');
+        const districts = await collection.aggregate([
+            { $match: { district: { $exists: true, $ne: null } } },
+            {
+                $group: {
+                    _id: '$district',
+                    totalReviews: { $sum: 1 },
+                    negativeCount: { $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] } },
+                    avgStars: { $avg: '$stars' },
+                    respondedCount: { $sum: { $cond: [{ $eq: ['$is_responded', 1] }, 1, 0] } },
+                }
+            },
+            { $sort: { negativeCount: -1 } },
+        ]).toArray();
+
+        res.json(districts.map(d => {
+            const negativeRate = d.totalReviews > 0
+                ? Math.round(d.negativeCount / d.totalReviews * 10000) / 100 : 0;
+            const healthScore = Math.round(
+                d.avgStars * (1 - d.negativeCount / d.totalReviews)
+                * (1 + d.respondedCount / d.totalReviews) * 100
+            ) / 100;
+            return {
+                district: d._id,
+                totalReviews: d.totalReviews,
+                negativeCount: d.negativeCount,
+                negativeRate,
+                avgStars: Math.round(d.avgStars * 100) / 100,
+                healthScore,
+            };
+        }).sort((a, b) => b.negativeRate - a.negativeRate));
+    } catch (err) {
+        errorResponse(res, 500, 'ERR_DISTRICT', err.message);
+    }
+});
+
+// GET /api/analytics/keywords — Top keywords from negative reviews
+// Rule-based extraction using Vietnamese keyword categories
+router.get('/keywords', async (req, res) => {
+    try {
+        const collection = req.db.collection('Master_Final_Analysis');
+
+        // Get all negative reviews with text
+        const negativeReviews = await collection
+            .find({
+                label: 0,
+                text: { $ne: 'Không có bình luận', $exists: true },
+            })
+            .project({ text: 1 })
+            .toArray();
+
+        // Vietnamese keyword categories
+        const KEYWORD_GROUPS = {
+            'Nhân viên': ['nhân viên', 'nhan vien', 'phục vụ', 'phuc vu', 'thái độ', 'thai do', 'staff', 'nhân viên bảo vệ'],
+            'Chờ lâu': ['đợi', 'doi', 'chờ', 'cho', 'lâu', 'lau', 'chậm', 'cham', 'wait', 'slow'],
+            'Chất lượng': ['dở', 'do', 'tệ', 'te', 'chất lượng', 'chat luong', 'nhạt', 'nhat', 'dở tệ', 'không ngon', 'ko ngon'],
+            'Bảo vệ': ['bảo vệ', 'bao ve', 'gác xe', 'gac xe', 'giữ xe', 'giu xe', 'parking'],
+            'Không gian': ['không gian', 'khong gian', 'chỗ ngồi', 'cho ngoi', 'chật', 'chat', 'ồn', 'on', 'bàn', 'ghế'],
+            'Vệ sinh': ['bẩn', 'ban', 'vệ sinh', 've sinh', 'sạch', 'sach', 'ruồi', 'kiến', 'kien', 'gián'],
+            'Giá cả': ['giá', 'gia', 'đắt', 'dat', 'mắc', 'mac', 'price', 'expensive'],
+            'Order sai': ['order sai', 'sai', 'nhầm', 'nham', 'thiếu', 'thieu', 'wrong', 'missing'],
+            'Đồ uống': ['nước', 'nuoc', 'trà', 'tra', 'cà phê', 'ca phe', 'coffee', 'trà sữa', 'tra sua', 'đá', 'da'],
+        };
+
+        const keywordCounts = {};
+        for (const [category, patterns] of Object.entries(KEYWORD_GROUPS)) {
+            keywordCounts[category] = { count: 0, category };
+        }
+
+        for (const review of negativeReviews) {
+            const text = (review.text || '').toLowerCase();
+            for (const [category, patterns] of Object.entries(KEYWORD_GROUPS)) {
+                for (const pattern of patterns) {
+                    if (text.includes(pattern)) {
+                        keywordCounts[category].count++;
+                        break; // count each category only once per review
+                    }
+                }
+            }
+        }
+
+        const result = Object.entries(keywordCounts)
+            .map(([keyword, data]) => ({ keyword, count: data.count, category: data.category }))
+            .filter(k => k.count > 0)
+            .sort((a, b) => b.count - a.count);
+
+        res.json({
+            data: result,
+            totalNegativeReviews: negativeReviews.length,
+        });
+    } catch (err) {
+        errorResponse(res, 500, 'ERR_KEYWORDS', err.message);
+    }
+});
+
 module.exports = router;

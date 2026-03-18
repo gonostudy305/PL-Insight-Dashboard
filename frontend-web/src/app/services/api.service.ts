@@ -79,6 +79,15 @@ export class ApiService {
         return this.http.post(`${this.baseUrl}/live-monitor/scan`, { maxItems });
     }
 
+    // ── Analytics Extended ──
+    getDistrictHeatmap(): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/district-heatmap`);
+    }
+
+    getKeywords(): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/keywords`);
+    }
+
     // ── Health ──
     getHealth(): Observable<any> {
         return this.http.get(`${this.baseUrl}/health`);
