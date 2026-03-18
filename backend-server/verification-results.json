@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-03-18T05:01:02.040Z",
+  "timestamp": "2026-03-18T05:51:33.736Z",
   "summary": {
-    "pass": 29,
-    "fail": 0,
-    "skip": 4
+    "pass": 34,
+    "fail": 1,
+    "skip": 0
   },
   "details": [
     {
@@ -182,27 +182,39 @@
     },
     {
       "layer": "L3",
-      "test": "FastAPI server NOT running (PhoBERT not loaded)",
-      "status": "SKIP",
-      "detail": "Model verification requires FastAPI at :8000 with PhoBERT loaded"
+      "test": "FastAPI server is running",
+      "status": "PASS",
+      "detail": "status=ok, modelLoaded=true, device=cpu"
     },
     {
       "layer": "L3",
-      "test": "/predict endpoint",
-      "status": "SKIP",
-      "detail": "Requires FastAPI"
+      "test": "Predict [positive]",
+      "status": "FAIL",
+      "detail": "Unexpected response: {\"detail\":[{\"type\":\"string_too_long\",\"loc\":[\"body\",\"reviewText\"],\"msg\":\"String should have at most 2"
     },
     {
       "layer": "L3",
-      "test": "/predict-batch endpoint",
-      "status": "SKIP",
-      "detail": "Requires FastAPI"
+      "test": "Predict [positive] \"Phúc Long Lê Văn Lương là một trong nhữn...\"",
+      "status": "PASS",
+      "detail": "Positive (0.9965)"
     },
     {
       "layer": "L3",
-      "test": "Edge case inference (sarcastic, English, no diacritics)",
-      "status": "SKIP",
-      "detail": "Requires FastAPI"
+      "test": "Predict [positive] \"Đây là lần đầu tiên mình uống Phúc Long ...\"",
+      "status": "PASS",
+      "detail": "Mixed (0.9374)"
+    },
+    {
+      "layer": "L3",
+      "test": "Predict [positive] \"Quán trà sữa Phúc Long tại Hàng Điếu là ...\"",
+      "status": "PASS",
+      "detail": "Mixed (0.9808)"
+    },
+    {
+      "layer": "L3",
+      "test": "Predict [positive] \"Đã từng nhiều lần đến Phúc Long - Văn Qu...\"",
+      "status": "PASS",
+      "detail": "Mixed (0.9421)"
     }
   ]
 }

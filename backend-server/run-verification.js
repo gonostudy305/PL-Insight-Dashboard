@@ -360,8 +360,9 @@ async function layer3_model() {
     // FastAPI server is typically at :8000. Check if it's running.
     try {
         const r = await get('http://localhost:8000/health');
-        if (r.data.status === 'healthy') {
-            log('L3', 'FastAPI server is running', 'PASS');
+        if (r.data.status === 'healthy' || r.data.status === 'ok') {
+            log('L3', 'FastAPI server is running', 'PASS',
+                `status=${r.data.status}, modelLoaded=${r.data.modelLoaded}, device=${r.data.device}`);
         } else {
             log('L3', 'FastAPI server', 'FAIL', JSON.stringify(r.data));
         }
@@ -399,8 +400,12 @@ async function layer3_model() {
             if (r.sentimentSummary && r.confidenceAvg !== undefined) {
                 log('L3', `Predict [${sample.category}] "${sample.text.substring(0, 40)}..."`, 'PASS',
                     `${r.sentimentSummary} (${r.confidenceAvg})`);
+            } else if (r.error) {
+                log('L3', `Predict [${sample.category}]`, 'FAIL',
+                    `API error: ${r.error.message || JSON.stringify(r.error)}`);
             } else {
-                log('L3', `Predict [${sample.category}]`, 'FAIL', 'Missing sentimentSummary');
+                log('L3', `Predict [${sample.category}]`, 'FAIL',
+                    `Unexpected response: ${JSON.stringify(r).substring(0, 100)}`);
             }
         } catch (e) {
             log('L3', `Predict [${sample.category}]`, 'FAIL', e.message);

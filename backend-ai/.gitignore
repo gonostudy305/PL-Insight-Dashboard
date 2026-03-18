@@ -1,0 +1,15 @@
+# Model files (too large for GitHub)
+model/*.safetensors
+model/*.bin
+model/bpe.codes
+model/vocab.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Environment
+.env
