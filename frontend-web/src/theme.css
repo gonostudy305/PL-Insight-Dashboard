@@ -154,6 +154,45 @@
     }
 }
 
+/* ─── Dark Mode Token Override ─── */
+[data-theme="dark"] {
+    --pl-bg: #121212;
+    --pl-primary: #2E7D32;
+    --pl-accent: #43A047;
+
+    --color-bg: #121212;
+    --color-surface: #1E1E1E;
+    --color-surface-hover: #2A2A2A;
+    --color-border: #333333;
+    --color-border-light: #2A2A2A;
+
+    --color-text: #E0E0E0;
+    --color-text-secondary: #BDBDBD;
+    --color-text-muted: #9E9E9E;
+
+    --pl-card-bg: #1E1E1E;
+    --pl-bg-pro: #121212;
+    --pl-surface: #1E1E1E;
+    --pl-dark-green: #4CAF50;
+
+    --color-success-bg: rgba(46, 125, 50, 0.15);
+    --color-warning-bg: rgba(230, 81, 0, 0.15);
+    --color-danger-bg: rgba(183, 28, 28, 0.15);
+    --color-info-bg: rgba(2, 119, 189, 0.15);
+
+    --color-accent-light: rgba(46, 125, 50, 0.2);
+
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-sm: var(--shadow-card);
+    --shadow-md: var(--shadow-card);
+    --shadow-lg: var(--shadow-card);
+    --shadow-card-hover: var(--shadow-hover);
+    --shadow-pro: var(--shadow-card);
+
+    --pl-green-50: rgba(46, 125, 50, 0.15);
+}
+
 @media (prefers-reduced-motion: reduce) {
 
     *,
