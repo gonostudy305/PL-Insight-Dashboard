@@ -4,10 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 
 @Component({
-    selector: 'app-live-monitor',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  selector: 'app-live-monitor',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
     <div class="monitor">
       <div class="header-row">
         <div>
@@ -51,10 +51,17 @@ import { ApiService } from '../../services/api.service';
       <!-- Review List -->
       <div class="review-list" *ngIf="reviews.length > 0; else emptyState">
         @for (review of reviews; track review.reviewId) {
-          <div class="review-card" [class.positive]="review.predictedLabel === 1" [class.negative]="review.predictedLabel === 0">
+          <div class="review-card"
+            [class.positive]="review.aiSentimentSummary === 'Positive'"
+            [class.negative]="review.aiSentimentSummary === 'Negative'"
+            [class.mixed]="review.aiSentimentSummary === 'Mixed'">
             <div class="card-header">
-              <span class="sentiment-badge" [class.badge-positive]="review.predictedLabel === 1" [class.badge-negative]="review.predictedLabel === 0">
-                {{ review.predictedLabel === 1 ? '🟢 Tích cực' : '🔴 Tiêu cực' }}
+              <span class="sentiment-badge"
+                [class.badge-positive]="review.aiSentimentSummary === 'Positive'"
+                [class.badge-negative]="review.aiSentimentSummary === 'Negative'"
+                [class.badge-mixed]="review.aiSentimentSummary === 'Mixed'">
+                {{ review.aiSentimentSummary === 'Positive' ? '🟢 Tích cực' :
+                   review.aiSentimentSummary === 'Negative' ? '🔴 Tiêu cực' : '🟡 Hỗn hợp' }}
               </span>
               <span class="ai-label">{{ review.aiSentimentSummary }}</span>
               <span class="stars">{{ getStarDisplay(review.stars) }}</span>
@@ -95,7 +102,7 @@ import { ApiService } from '../../services/api.service';
       </ng-template>
     </div>
   `,
-    styles: [`
+  styles: [`
     .monitor { max-width: 1200px; }
 
     .header-row {
@@ -163,6 +170,7 @@ import { ApiService } from '../../services/api.service';
     .review-card:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
     .review-card.positive { border-left: 3px solid #22c55e; }
     .review-card.negative { border-left: 3px solid #ef4444; }
+    .review-card.mixed { border-left: 3px solid #f59e0b; }
 
     .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
 
@@ -171,6 +179,7 @@ import { ApiService } from '../../services/api.service';
     }
     .badge-positive { background: rgba(34,197,94,0.12); color: #22c55e; }
     .badge-negative { background: rgba(239,68,68,0.12); color: #ef4444; }
+    .badge-mixed { background: rgba(245,158,11,0.12); color: #f59e0b; }
 
     .ai-label { font-size: 12px; color: #a1a1aa; font-weight: 500; }
     .stars { font-size: 13px; color: #f59e0b; }
@@ -212,85 +221,85 @@ import { ApiService } from '../../services/api.service';
   `],
 })
 export class LiveMonitorComponent implements OnInit, OnDestroy {
-    reviews: any[] = [];
-    branches: any[] = [];
-    total = 0;
-    scanning = false;
-    pollingActive = true;
-    lastScanResult: any = null;
-    filterSentiment = '';
-    filterBranch = '';
+  reviews: any[] = [];
+  branches: any[] = [];
+  total = 0;
+  scanning = false;
+  pollingActive = true;
+  lastScanResult: any = null;
+  filterSentiment = '';
+  filterBranch = '';
 
-    private pollTimer: any;
-    private readonly POLL_INTERVAL = 30000; // 30 seconds
+  private pollTimer: any;
+  private readonly POLL_INTERVAL = 30000; // 30 seconds
 
-    constructor(private api: ApiService) { }
+  constructor(private api: ApiService) { }
 
-    ngOnInit() {
+  ngOnInit() {
+    this.loadRecent();
+    this.loadBranches();
+    this.startPolling();
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
+  }
+
+  loadRecent() {
+    const params: any = { limit: 30 };
+    if (this.filterSentiment) params.sentiment = this.filterSentiment;
+    if (this.filterBranch) params.placeId = this.filterBranch;
+
+    this.api.getLiveRecent(params).subscribe({
+      next: data => {
+        this.reviews = data.data || [];
+        this.total = data.total || 0;
+      },
+      error: err => console.error('Live monitor load error:', err),
+    });
+  }
+
+  loadBranches() {
+    this.api.getBranches().subscribe({
+      next: data => this.branches = data.data || [],
+      error: () => { },
+    });
+  }
+
+  runScan() {
+    this.scanning = true;
+    this.api.scanReviews(10).subscribe({
+      next: result => {
+        this.lastScanResult = result;
+        this.scanning = false;
         this.loadRecent();
-        this.loadBranches();
-        this.startPolling();
-    }
+      },
+      error: err => {
+        console.error('Scan error:', err);
+        this.scanning = false;
+      },
+    });
+  }
 
-    ngOnDestroy() {
-        this.stopPolling();
-    }
+  startPolling() {
+    this.pollingActive = true;
+    this.pollTimer = setInterval(() => this.loadRecent(), this.POLL_INTERVAL);
+  }
 
-    loadRecent() {
-        const params: any = { limit: 30 };
-        if (this.filterSentiment) params.sentiment = this.filterSentiment;
-        if (this.filterBranch) params.placeId = this.filterBranch;
+  stopPolling() {
+    this.pollingActive = false;
+    if (this.pollTimer) clearInterval(this.pollTimer);
+  }
 
-        this.api.getLiveRecent(params).subscribe({
-            next: data => {
-                this.reviews = data.data || [];
-                this.total = data.total || 0;
-            },
-            error: err => console.error('Live monitor load error:', err),
-        });
-    }
+  getStarDisplay(stars: number): string {
+    return '⭐'.repeat(stars);
+  }
 
-    loadBranches() {
-        this.api.getBranches().subscribe({
-            next: data => this.branches = data.data || [],
-            error: () => { },
-        });
-    }
-
-    runScan() {
-        this.scanning = true;
-        this.api.scanReviews(10).subscribe({
-            next: result => {
-                this.lastScanResult = result;
-                this.scanning = false;
-                this.loadRecent();
-            },
-            error: err => {
-                console.error('Scan error:', err);
-                this.scanning = false;
-            },
-        });
-    }
-
-    startPolling() {
-        this.pollingActive = true;
-        this.pollTimer = setInterval(() => this.loadRecent(), this.POLL_INTERVAL);
-    }
-
-    stopPolling() {
-        this.pollingActive = false;
-        if (this.pollTimer) clearInterval(this.pollTimer);
-    }
-
-    getStarDisplay(stars: number): string {
-        return '⭐'.repeat(stars);
-    }
-
-    formatTime(date: string): string {
-        if (!date) return '';
-        return new Date(date).toLocaleString('vi-VN', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit',
-        });
-    }
+  formatTime(date: string): string {
+    if (!date) return '';
+    return new Date(date).toLocaleString('vi-VN', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  }
 }

@@ -13,6 +13,11 @@ export const routes: Routes = [
             import('./pages/live-monitor/live-monitor.component').then(m => m.LiveMonitorComponent),
     },
     {
+        path: 'analytics',
+        loadComponent: () =>
+            import('./pages/analytics/analytics.component').then(m => m.AnalyticsComponent),
+    },
+    {
         path: 'reviews',
         loadComponent: () =>
             import('./pages/reviews/reviews.component').then(m => m.ReviewsComponent),
