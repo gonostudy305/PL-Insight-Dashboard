@@ -100,30 +100,47 @@ async function runTriggerScan(db) {
 }
 
 /**
- * Notifier interface — currently a stub for Telegram.
- * Replace with actual implementation when token is available.
+ * Telegram Notifier — sends alert messages to configured chat.
+ * Requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env
  */
 async function sendNotification(alert) {
-    const message = `🚨 PL-Insight Alert\n` +
-        `Chi nhánh: ${alert.branchAddress}\n` +
-        `Quận: ${alert.district}\n` +
-        `Quy tắc: ${alert.triggerRule}\n` +
-        `Số review: ${alert.triggerCount}\n` +
-        `Thời điểm: ${alert.createdAt.toISOString()}`;
+    const message = `🚨 *PL-Insight Alert*\n\n` +
+        `📍 Chi nhánh: ${alert.branchAddress}\n` +
+        `🏙️ Quận: ${alert.district}\n` +
+        `⚠️ Quy tắc: ${alert.triggerRule}\n` +
+        `📊 Số review: ${alert.triggerCount}\n` +
+        `🕐 Thời điểm: ${alert.createdAt.toISOString()}`;
 
-    // TODO: Replace with actual Telegram API call
-    // const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    // const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-    // if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-    //     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message }),
-    //     });
-    // }
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-    console.log(`[notifier] STUB — would send: ${message.substring(0, 80)}...`);
-    return { sent: false, stub: true, message };
+    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown',
+                }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+                console.log(`[notifier] Telegram sent to ${TELEGRAM_CHAT_ID}`);
+                return { sent: true, message };
+            } else {
+                console.error(`[notifier] Telegram error:`, data.description);
+                return { sent: false, error: data.description, message };
+            }
+        } catch (err) {
+            console.error(`[notifier] Telegram fetch error:`, err.message);
+            return { sent: false, error: err.message, message };
+        }
+    }
+
+    console.log(`[notifier] No Telegram config — skipping notification`);
+    return { sent: false, noConfig: true, message };
 }
 
 module.exports = { runTriggerScan, sendNotification, COOLDOWN_MINUTES, TRIGGER_THRESHOLD };

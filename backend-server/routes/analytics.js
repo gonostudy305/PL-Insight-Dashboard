@@ -199,9 +199,9 @@ router.get('/by-session', async (req, res) => {
 // GET /api/analytics/district-heatmap — Negative rate by district
 // District name standardization mapping
 const DISTRICT_MAP = {
-    'Go Vap': 'Gò Vấp',
-    'Hanoi City': null,       // ambiguous, merge into "Khác"
-    'Hanoi': null,            // ambiguous
+    'Go Vap': null,                    // HCM district, not Hanoi → merge into Khác
+    'Hanoi City': null,                // ambiguous → Khác
+    'Hanoi': null,                     // ambiguous → Khác
     'Hai Bà Trưng District': 'Hai Bà Trưng',
 };
 const MIN_REVIEWS_THRESHOLD = 20; // below this, flag as low-sample

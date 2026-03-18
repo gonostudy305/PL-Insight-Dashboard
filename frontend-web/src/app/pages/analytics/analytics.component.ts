@@ -14,7 +14,7 @@ Chart.register(...registerables);
       <div class="page-header">
         <div>
           <h2 class="page-title">Insight Analytics</h2>
-          <p class="page-subtitle">Phân tích chuyên sâu — Quận, từ khóa, xu hướng</p>
+          <p class="page-subtitle">Phân tích chuyên sâu - Quận, từ khóa, xu hướng</p>
         </div>
       </div>
 
@@ -23,42 +23,54 @@ Chart.register(...registerables);
         <div class="card-header">
           <h3 class="card-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><rect width="3" height="9" x="7" y="7"/><rect width="3" height="5" x="14" y="7"/></svg>
-            Heatmap theo Quận
+            Bản đồ nhiệt rủi ro theo Quận
           </h3>
-          <div class="heatmap-hints">
-            <span class="hint-chip good">🟢 Tốt</span>
-            <span class="hint-chip bad">🔴 Xấu</span>
-            <span class="hint-chip neutral">🔵 Volume</span>
+          <div class="heatmap-legends">
+            <div class="legend-block">
+              <span class="legend-label">Chất lượng:</span>
+              <span class="legend-good-dot"></span><span class="legend-label">Tốt</span>
+              <div class="legend-gradient quality-gradient"></div>
+              <span class="legend-bad-dot"></span><span class="legend-label">Xấu</span>
+            </div>
+            <div class="legend-block">
+              <span class="legend-label">Khối lượng:</span>
+              <div class="legend-gradient volume-gradient"></div>
+            </div>
           </div>
         </div>
         <div class="heatmap-wrap" *ngIf="districts.length > 0; else distLoading">
           <!-- Column headers -->
-          <div class="heatmap-grid" [style.grid-template-columns]="'140px repeat(' + heatmapMetrics.length + ', 1fr)'">
-            <div class="hm-corner">Quận</div>
+          <div class="heatmap-grid" [style.grid-template-columns]="'150px repeat(' + heatmapMetrics.length + ', 1fr)'">
+            <div class="hm-corner">Quận ▾</div>
             @for (m of heatmapMetrics; track m.key) {
-              <div class="hm-col-header">
-                {{ m.label }}
-                <span class="col-hint">{{ m.hint }}</span>
-              </div>
+              <div class="hm-col-header">{{ m.label }}</div>
             }
 
             <!-- Data rows -->
             @for (d of districts; track d.district) {
-              <div class="hm-row-label" [class.small-sample]="d.totalReviews < 30">
+              <div class="hm-row-label" [class.low-sample]="d.lowSample">
                 {{ d.district }}
-                <span class="sample-badge" *ngIf="d.totalReviews < 30">n={{ d.totalReviews }}</span>
+                <span class="low-sample-icon" *ngIf="d.lowSample" title="Mẫu nhỏ (< 20 reviews) — kết quả chưa đủ tin cậy">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                </span>
               </div>
               @for (m of heatmapMetrics; track m.key) {
                 <div class="hm-cell"
-                  [class.small-sample]="d.totalReviews < 30"
-                  [style.background]="getCellColor(d[m.key], m.key)"
-                  [style.color]="getCellTextColor(d[m.key], m.key)"
-                  [title]="m.label + ': ' + d[m.key]">
+                  [style.background]="getCellColor(d[m.key], m.key, d.lowSample)"
+                  [style.color]="getCellTextColor(d[m.key], m.key, d.lowSample)"
+                  [style.opacity]="d.lowSample ? '0.55' : '1'"
+                  [title]="getCellTooltip(d, m)">
                   {{ formatCellValue(d[m.key], m.key) }}
                 </div>
               }
             }
           </div>
+          <p class="heatmap-footnote">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+            Quận đánh dấu có ít hơn 20 review - dữ liệu mang tính tham khảo.
+            <strong>Khác</strong> = các địa bàn ngoài Hà Nội hoặc không xác định rõ quận.
+            Sắp xếp theo <strong>Risk Score</strong> (chỉ số ưu tiên nội bộ) = Neg Rate × log₂(Reviews) - ưu tiên nơi vừa nhiều review vừa tỷ lệ tiêu cực cao.
+          </p>
         </div>
         <ng-template #distLoading><p class="loading">Đang tải...</p></ng-template>
       </div>
@@ -161,6 +173,8 @@ Chart.register(...registerables);
       justify-content: space-between;
       padding: var(--space-5) var(--space-6);
       border-bottom: 1px solid var(--color-border-light);
+      flex-wrap: wrap;
+      gap: var(--space-3);
     }
 
     .card-title {
@@ -178,46 +192,51 @@ Chart.register(...registerables);
       padding: var(--space-2) var(--space-6) 0;
     }
 
-    /* ===== GRID HEATMAP ===== */
-    .heatmap-hints {
+    /* ===== HEATMAP LEGENDS ===== */
+    .heatmap-legends {
+      display: flex;
+      gap: var(--space-5);
+      align-items: center;
+    }
+
+    .legend-block {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
     }
 
-    .hint-chip {
+    .legend-label {
       font-size: 11px;
-      font-weight: 500;
-      padding: 3px 8px;
-      border-radius: var(--radius-full);
-    }
-
-    .hint-chip.good { background: rgba(34,197,94,0.1); color: #16a34a; }
-    .hint-chip.bad { background: rgba(239,68,68,0.1); color: #dc2626; }
-    .hint-chip.neutral { background: rgba(59,130,246,0.1); color: #2563eb; }
-
-    .col-hint {
-      display: block;
-      font-size: 9px;
-      font-weight: 400;
       color: var(--color-text-muted);
-      letter-spacing: 0;
-      text-transform: none;
-      margin-top: 2px;
-    }
-
-    .small-sample { opacity: 0.55; }
-
-    .sample-badge {
-      font-size: 10px;
       font-weight: 500;
-      color: var(--color-text-muted);
-      background: var(--color-bg);
-      padding: 1px 6px;
-      border-radius: var(--radius-sm);
-      margin-left: 4px;
     }
 
+    .legend-good-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .legend-bad-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .legend-gradient {
+      width: 80px;
+      height: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--color-border-light);
+    }
+
+    .quality-gradient {
+      background: linear-gradient(90deg, #22c55e, #a3e635, #facc15, #fb923c, #ef4444);
+    }
+
+    .volume-gradient {
+      background: linear-gradient(90deg, #e0e7ff, #818cf8, #4f46e5);
+    }
+
+    /* ===== GRID HEATMAP ===== */
     .heatmap-wrap {
       padding: var(--space-4) var(--space-5);
       overflow-x: auto;
@@ -226,7 +245,7 @@ Chart.register(...registerables);
     .heatmap-grid {
       display: grid;
       gap: 3px;
-      min-width: 600px;
+      min-width: 650px;
     }
 
     .hm-corner {
@@ -260,9 +279,17 @@ Chart.register(...registerables);
       padding: 8px 10px;
       display: flex;
       align-items: center;
+      gap: 4px;
       white-space: nowrap;
       border-radius: 6px 0 0 6px;
     }
+
+    .hm-row-label.low-sample {
+      font-style: italic;
+      color: var(--color-text-muted);
+    }
+
+    .low-sample-icon { display: flex; align-items: center; }
 
     .hm-cell {
       display: flex;
@@ -282,6 +309,16 @@ Chart.register(...registerables);
       box-shadow: 0 2px 12px rgba(0,0,0,0.15);
       z-index: 2;
       position: relative;
+    }
+
+    .heatmap-footnote {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      padding: var(--space-3) 0 0;
+      line-height: 1.5;
     }
 
     /* ===== KEYWORD BARS ===== */
@@ -372,13 +409,15 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   private trendChart: Chart | null = null;
   private maxKeywordCount = 0;
 
-  // Heatmap metric definitions
-  // colorScale: 'bad-high' = red when high (negRate), 'good-high' = green when high (stars, health), 'volume' = blue tonal
+  // Heatmap metrics:
+  // - Quality metrics (negativeRate, avgStars, healthScore, riskScore) use green-to-red scale
+  // - Volume metric (totalReviews) uses a neutral indigo scale
   heatmapMetrics = [
-    { key: 'totalReviews', label: 'Reviews', colorScale: 'volume', hint: 'nhiều → đậm' },
-    { key: 'negativeRate', label: 'Neg Rate %', colorScale: 'bad-high', hint: '↑ xấu' },
-    { key: 'avgStars', label: 'Sao TB', colorScale: 'good-high', hint: '↑ tốt' },
-    { key: 'healthScore', label: 'Health', colorScale: 'good-high', hint: '↑ tốt' },
+    { key: 'riskScore', label: 'Risk Score', type: 'quality', invert: true },
+    { key: 'negativeRate', label: 'Neg Rate %', type: 'quality', invert: true },
+    { key: 'avgStars', label: 'Sao TB', type: 'quality', invert: false },
+    { key: 'healthScore', label: 'Health', type: 'quality', invert: false },
+    { key: 'totalReviews', label: 'Reviews', type: 'volume', invert: false },
   ];
 
   // Min/max per metric for color interpolation
@@ -437,72 +476,98 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /** Returns a 0–1 normalized value (0=min, 1=max in dataset) */
+  /** Returns a 0–1 normalized value */
   private getNorm(value: number, key: string): number {
     const range = this.metricRanges[key];
     if (!range || range.max === range.min) return 0.5;
     return Math.max(0, Math.min(1, (value - range.min) / (range.max - range.min)));
   }
 
-  private interpolateStops(norm: number, stops: { pos: number; r: number; g: number; b: number }[]): string {
+  /**
+   * Quality scale: green (#22c55e) = good → red (#ef4444) = bad
+   * - For "invert: true" metrics (negativeRate, riskScore): high value = bad = red
+   * - For "invert: false" metrics (avgStars, healthScore): high value = good = green
+   *
+   * Volume scale: neutral indigo gradient (light → dark)
+   */
+  getCellColor(value: number, key: string, lowSample: boolean): string {
+    const metric = this.heatmapMetrics.find(m => m.key === key);
+    if (!metric) return '#f1f5f9';
+
+    const norm = this.getNorm(value, key);
+
+    if (metric.type === 'volume') {
+      // Neutral indigo scale: light (#e0e7ff) → dark (#4f46e5)
+      const r = Math.round(224 + (79 - 224) * norm);
+      const g = Math.round(231 + (70 - 231) * norm);
+      const b = Math.round(255 + (229 - 255) * norm);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Quality scale → map to "badness" (0 = good/green, 1 = bad/red)
+    let badness: number;
+    if (metric.invert) {
+      badness = norm; // high negativeRate/riskScore = bad
+    } else {
+      badness = 1 - norm; // high avgStars/health = good
+    }
+
+    // 5-stop gradient: green → lime → yellow → orange → red
+    const stops = [
+      { pos: 0.0, r: 34, g: 197, b: 94 },   // green = good
+      { pos: 0.25, r: 163, g: 230, b: 53 },  // lime
+      { pos: 0.5, r: 250, g: 204, b: 21 },   // yellow
+      { pos: 0.75, r: 251, g: 146, b: 60 },   // orange
+      { pos: 1.0, r: 239, g: 68, b: 68 },    // red = bad
+    ];
+
     let lower = stops[0], upper = stops[stops.length - 1];
     for (let i = 0; i < stops.length - 1; i++) {
-      if (norm >= stops[i].pos && norm <= stops[i + 1].pos) {
-        lower = stops[i]; upper = stops[i + 1]; break;
+      if (badness >= stops[i].pos && badness <= stops[i + 1].pos) {
+        lower = stops[i];
+        upper = stops[i + 1];
+        break;
       }
     }
+
     const range = upper.pos - lower.pos || 1;
-    const t = (norm - lower.pos) / range;
+    const t = (badness - lower.pos) / range;
+
     const r = Math.round(lower.r + (upper.r - lower.r) * t);
     const g = Math.round(lower.g + (upper.g - lower.g) * t);
     const b = Math.round(lower.b + (upper.b - lower.b) * t);
+
     return `rgb(${r}, ${g}, ${b})`;
   }
 
-  getCellColor(value: number, key: string): string {
+  getCellTextColor(value: number, key: string, lowSample: boolean): string {
+    const metric = this.heatmapMetrics.find(m => m.key === key);
+    if (!metric) return '#1a1a1a';
+
+    if (metric.type === 'volume') {
+      const norm = this.getNorm(value, key);
+      return norm > 0.5 ? '#fff' : '#312e81';
+    }
+
+    // Quality: dark text except at saturated ends
+    let badness: number;
     const norm = this.getNorm(value, key);
-    const metric = this.heatmapMetrics.find(m => m.key === key)!;
-
-    if (metric.colorScale === 'volume') {
-      // Blue tonal: light → dark blue (neutral, no good/bad)
-      return this.interpolateStops(norm, [
-        { pos: 0, r: 219, g: 234, b: 254 },  // #dbeafe very light blue
-        { pos: 0.5, r: 96, g: 165, b: 250 }, // #60a5fa mid blue
-        { pos: 1, r: 37, g: 99, b: 235 },    // #2563eb strong blue
-      ]);
-    }
-
-    if (metric.colorScale === 'bad-high') {
-      // High = bad → green to red
-      return this.interpolateStops(norm, [
-        { pos: 0, r: 34, g: 197, b: 94 },    // #22c55e green
-        { pos: 0.5, r: 250, g: 204, b: 21 }, // #facc15 yellow
-        { pos: 1, r: 239, g: 68, b: 68 },    // #ef4444 red
-      ]);
-    }
-
-    // good-high: High = good → red to green
-    return this.interpolateStops(norm, [
-      { pos: 0, r: 239, g: 68, b: 68 },    // #ef4444 red
-      { pos: 0.5, r: 250, g: 204, b: 21 }, // #facc15 yellow
-      { pos: 1, r: 34, g: 197, b: 94 },    // #22c55e green
-    ]);
-  }
-
-  getCellTextColor(value: number, key: string): string {
-    const norm = this.getNorm(value, key);
-    const metric = this.heatmapMetrics.find(m => m.key === key)!;
-    if (metric.colorScale === 'volume') {
-      return norm > 0.45 ? '#fff' : '#1e3a5f';
-    }
-    // For red-green scales: dark text in the yellow middle, white at saturated ends
-    return (norm < 0.2 || norm > 0.8) ? '#fff' : '#1a1a1a';
+    if (metric.invert) { badness = norm; } else { badness = 1 - norm; }
+    return (badness < 0.15 || badness > 0.75) ? '#fff' : '#1a1a1a';
   }
 
   formatCellValue(value: number, key: string): string {
     if (key === 'negativeRate') return value + '%';
     if (key === 'avgStars' || key === 'healthScore') return value.toFixed(2);
+    if (key === 'riskScore') return value.toFixed(0);
     return value.toString();
+  }
+
+  getCellTooltip(d: any, m: any): string {
+    const val = this.formatCellValue(d[m.key], m.key);
+    let tip = `${m.label}: ${val}`;
+    if (d.lowSample) tip += ' ⚠ Mẫu nhỏ (< 20 reviews)';
+    return tip;
   }
 
   // ── Other helpers ──
