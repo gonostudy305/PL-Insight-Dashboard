@@ -50,7 +50,7 @@ export class ApiService {
     }
 
     predictReview(reviewId: string): Observable<any> {
-        return this.http.get(`${this.baseUrl}/reviews/${reviewId}/predict`);
+        return this.http.post(`${this.baseUrl}/reviews/${reviewId}/predict`, {});
     }
 
     // ── Alerts ──
