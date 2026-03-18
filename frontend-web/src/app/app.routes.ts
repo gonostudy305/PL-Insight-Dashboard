@@ -18,6 +18,11 @@ export const routes: Routes = [
             import('./pages/analytics/analytics.component').then(m => m.AnalyticsComponent),
     },
     {
+        path: 'branches/:placeId',
+        loadComponent: () =>
+            import('./pages/branch-detail/branch-detail.component').then(m => m.BranchDetailComponent),
+    },
+    {
         path: 'reviews',
         loadComponent: () =>
             import('./pages/reviews/reviews.component').then(m => m.ReviewsComponent),
