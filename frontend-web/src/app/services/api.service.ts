@@ -60,6 +60,24 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/alerts`, { params: httpParams });
     }
 
+    getAlertHistory(params: any = {}): Observable<any> {
+        let httpParams = new HttpParams();
+        Object.keys(params).forEach(key => {
+            if (params[key] !== undefined && params[key] !== null) {
+                httpParams = httpParams.set(key, params[key]);
+            }
+        });
+        return this.http.get(`${this.baseUrl}/alerts/history`, { params: httpParams });
+    }
+
+    runAlertScan(): Observable<any> {
+        return this.http.post(`${this.baseUrl}/alerts/scan`, {});
+    }
+
+    updateAlertStatus(alertId: string, status: string): Observable<any> {
+        return this.http.patch(`${this.baseUrl}/alerts/${encodeURIComponent(alertId)}/status`, { status });
+    }
+
     // ── Live Monitor ──
     getLiveRecent(params: any = {}): Observable<any> {
         let httpParams = new HttpParams();
