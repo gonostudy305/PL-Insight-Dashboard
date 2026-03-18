@@ -197,10 +197,19 @@ router.get('/by-session', async (req, res) => {
 });
 
 // GET /api/analytics/district-heatmap — Negative rate by district
+// District name standardization mapping
+const DISTRICT_MAP = {
+    'Go Vap': 'Gò Vấp',
+    'Hanoi City': null,       // ambiguous, merge into "Khác"
+    'Hanoi': null,            // ambiguous
+    'Hai Bà Trưng District': 'Hai Bà Trưng',
+};
+const MIN_REVIEWS_THRESHOLD = 20; // below this, flag as low-sample
+
 router.get('/district-heatmap', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
-        const districts = await collection.aggregate([
+        const rawDistricts = await collection.aggregate([
             { $match: { district: { $exists: true, $ne: null } } },
             {
                 $group: {
@@ -211,25 +220,51 @@ router.get('/district-heatmap', async (req, res) => {
                     respondedCount: { $sum: { $cond: [{ $eq: ['$is_responded', 1] }, 1, 0] } },
                 }
             },
-            { $sort: { negativeCount: -1 } },
         ]).toArray();
 
-        res.json(districts.map(d => {
+        // Standardize district names and merge duplicates
+        const merged = {};
+        for (const d of rawDistricts) {
+            let name = d._id;
+            if (name in DISTRICT_MAP) {
+                name = DISTRICT_MAP[name] || 'Khác';
+            }
+            if (!merged[name]) {
+                merged[name] = { totalReviews: 0, negativeCount: 0, starSum: 0, respondedCount: 0 };
+            }
+            merged[name].totalReviews += d.totalReviews;
+            merged[name].negativeCount += d.negativeCount;
+            merged[name].starSum += d.avgStars * d.totalReviews; // weighted sum
+            merged[name].respondedCount += d.respondedCount;
+        }
+
+        const result = Object.entries(merged).map(([district, d]) => {
             const negativeRate = d.totalReviews > 0
                 ? Math.round(d.negativeCount / d.totalReviews * 10000) / 100 : 0;
-            const healthScore = Math.round(
-                d.avgStars * (1 - d.negativeCount / d.totalReviews)
-                * (1 + d.respondedCount / d.totalReviews) * 100
+            const avgStars = d.totalReviews > 0
+                ? Math.round((d.starSum / d.totalReviews) * 100) / 100 : 0;
+            const healthScore = d.totalReviews > 0
+                ? Math.round(
+                    avgStars * (1 - d.negativeCount / d.totalReviews)
+                    * (1 + d.respondedCount / d.totalReviews) * 100
+                ) / 100 : 0;
+            // Risk Score = negativeRate × log2(totalReviews + 1) — weighs both severity and volume
+            const riskScore = Math.round(
+                negativeRate * Math.log2(d.totalReviews + 1) * 100
             ) / 100;
             return {
-                district: d._id,
+                district,
                 totalReviews: d.totalReviews,
                 negativeCount: d.negativeCount,
                 negativeRate,
-                avgStars: Math.round(d.avgStars * 100) / 100,
+                avgStars,
                 healthScore,
+                riskScore,
+                lowSample: d.totalReviews < MIN_REVIEWS_THRESHOLD,
             };
-        }).sort((a, b) => b.negativeRate - a.negativeRate));
+        }).sort((a, b) => b.riskScore - a.riskScore);
+
+        res.json(result);
     } catch (err) {
         errorResponse(res, 500, 'ERR_DISTRICT', err.message);
     }
