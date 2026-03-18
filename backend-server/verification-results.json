@@ -1,0 +1,184 @@
+{
+  "timestamp": "2026-03-18T04:50:02.776Z",
+  "summary": {
+    "pass": 25,
+    "fail": 0,
+    "skip": 4
+  },
+  "details": [
+    {
+      "layer": "L1",
+      "test": "Health endpoint returns OK + DB connected",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Overview schema has all 9 required fields",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Overview fields are all numeric",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Branches schema has all required camelCase fields",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Branches: no snake_case field leaks",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Alerts schema has all required fields incl. riskFactors",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Alerts summary has high/standard/monitoring",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Distribution returns exactly 5 star levels",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Trends schema correct (84 months)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Reviews pagination structure correct",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Reviews item schema has camelCase fields",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L1",
+      "test": "Unknown route returns 404",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L2",
+      "test": "positiveCount + negativeCount = totalReviews",
+      "status": "PASS",
+      "detail": "4479 + 1871 = 6350"
+    },
+    {
+      "layer": "L2",
+      "test": "negativeRate matches negativeCount/totalReviews",
+      "status": "PASS",
+      "detail": "29.46% ≈ 29.46%"
+    },
+    {
+      "layer": "L2",
+      "test": "sentimentScore = 100 - negativeRate",
+      "status": "PASS",
+      "detail": "70.54% ≈ 70.54%"
+    },
+    {
+      "layer": "L2",
+      "test": "alertCount is populated (> 0)",
+      "status": "PASS",
+      "detail": "340 alerts"
+    },
+    {
+      "layer": "L2",
+      "test": "Branches sorted by healthScore ascending (risk-first)",
+      "status": "PASS",
+      "detail": "First: 1.5, Last: 4.13"
+    },
+    {
+      "layer": "L2",
+      "test": "All branches have valid placeId (PL_HN_*)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L2",
+      "test": "Total branches: 24",
+      "status": "PASS",
+      "detail": "Expected ~24"
+    },
+    {
+      "layer": "L2",
+      "test": "Alerts sorted by priorityLevel ascending (high=1 first)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L2",
+      "test": "Alert summary counts match total",
+      "status": "PASS",
+      "detail": "32+71+47=150"
+    },
+    {
+      "layer": "L2",
+      "test": "All alerts are negative reviews (stars ≤ 3)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "layer": "L2",
+      "test": "Distribution sum = totalReviews",
+      "status": "PASS",
+      "detail": "6350 = 6350"
+    },
+    {
+      "layer": "L2",
+      "test": "Trends monthly sum = totalReviews",
+      "status": "PASS",
+      "detail": "6350 = 6350"
+    },
+    {
+      "layer": "L2",
+      "test": "Trends periods sorted chronologically",
+      "status": "PASS",
+      "detail": "2018-09 → 2026-01"
+    },
+    {
+      "layer": "L3",
+      "test": "FastAPI server NOT running (PhoBERT not loaded)",
+      "status": "SKIP",
+      "detail": "Model verification requires FastAPI at :8000 with PhoBERT loaded"
+    },
+    {
+      "layer": "L3",
+      "test": "/predict endpoint",
+      "status": "SKIP",
+      "detail": "Requires FastAPI"
+    },
+    {
+      "layer": "L3",
+      "test": "/predict-batch endpoint",
+      "status": "SKIP",
+      "detail": "Requires FastAPI"
+    },
+    {
+      "layer": "L3",
+      "test": "Edge case inference (sarcastic, English, no diacritics)",
+      "status": "SKIP",
+      "detail": "Requires FastAPI"
+    }
+  ]
+}
