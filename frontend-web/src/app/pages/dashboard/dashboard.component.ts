@@ -239,7 +239,7 @@ Chart.register(...registerables);
 
     /* TOP BAR — identical to /reviews */
     .kv-header-row { display: flex; padding: 12px 16px; gap: 16px; }
-    .kv-title-area { width: 200px; flex-shrink: 0; display: flex; align-items: center; }
+    .kv-title-area { width: 240px; flex-shrink: 0; display: flex; align-items: center; }
     .kv-title-area h2 { font-size: 1.15rem; font-weight: 700; color: #333; margin: 0; }
     .kv-top-actions { flex: 1; display: flex; align-items: center; gap: 10px; }
 
@@ -281,7 +281,7 @@ Chart.register(...registerables);
     .kv-body-row { display: flex; flex: 1; padding: 0 16px 16px 16px; gap: 16px; align-items: flex-start; }
 
     /* SIDEBAR — same 200px width */
-    .kv-sidebar { width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+    .kv-sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
     .filter-box {
       background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
       border: 1px solid #e0e4eb;
