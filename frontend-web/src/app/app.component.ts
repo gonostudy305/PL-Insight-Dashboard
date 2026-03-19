@@ -56,7 +56,7 @@ import { TopHeaderComponent } from './components/top-header/top-header.component
     }
 
     ::ng-deep .filter-sidebar {
-      width: 280px;
+      width: 240px;
       background: var(--color-surface);
       border-right: 1px solid var(--color-border);
       display: flex;

@@ -232,7 +232,7 @@ import { ApiService } from '../../services/api.service';
     }
 
     .kv-title-area {
-      width: 220px; /* Match sidebar width */
+      width: 240px; /* Match sidebar width */
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -328,7 +328,7 @@ import { ApiService } from '../../services/api.service';
 
     /* SIDEBAR */
     .kv-sidebar {
-      width: 220px;
+      width: 240px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;

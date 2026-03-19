@@ -162,7 +162,7 @@ import { ApiService } from '../../services/api.service';
       gap: 16px;
     }
     .kv-title-area {
-      width: 200px;
+      width: 240px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -205,7 +205,7 @@ import { ApiService } from '../../services/api.service';
 
     /* SIDEBAR */
     .kv-sidebar {
-      width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+      width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
     }
     .filter-box {
       background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);

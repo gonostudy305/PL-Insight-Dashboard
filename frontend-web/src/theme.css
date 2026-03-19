@@ -4,7 +4,7 @@
    Import this file in styles.css: @import url('./theme.css');
    ===================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
+/* Google Fonts removed — using system font stack (--font) for reliability */
 
 :root {
     /* ─── Director F&B Theme Tokens v3 ─── */
