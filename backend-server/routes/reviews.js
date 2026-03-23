@@ -20,13 +20,27 @@ router.get('/', async (req, res) => {
             limit = 20,
             branch,
             label,
+            sentiment,
+            stars,
+            search,
             sort = 'publishedAtDate',
             order = 'desc',
         } = req.query;
 
         const filter = {};
-        if (branch) filter.placeId = branch; // group by placeId, not address string
+        if (branch) filter.placeId = branch;
         if (label !== undefined) filter.label = parseInt(label);
+        if (sentiment === 'positive') filter.label = 1;
+        if (sentiment === 'negative') filter.label = 0;
+        if (stars) filter.stars = parseInt(stars);
+        if (search) {
+            // Escape regex special chars to prevent injection
+            const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            filter.$or = [
+                { text: { $regex: escaped, $options: 'i' } },
+                { branch_address: { $regex: escaped, $options: 'i' } },
+            ];
+        }
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const sortObj = { [sort]: order === 'desc' ? -1 : 1 };

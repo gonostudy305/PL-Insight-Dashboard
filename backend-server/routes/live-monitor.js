@@ -73,6 +73,7 @@ router.get('/recent', async (req, res) => {
         const filter = { analyzedAt: { $exists: true } };
         if (sentiment === 'positive') filter.predictedLabel = 1;
         if (sentiment === 'negative') filter.predictedLabel = 0;
+        if (sentiment === 'mixed') filter.predictedLabel = 2;
         if (placeId) filter.placeId = placeId;
 
         const reviews = await collection
@@ -124,7 +125,8 @@ router.post('/analyze/:reviewId', async (req, res) => {
 
         // Save AI runtime fields (never overwrite `label`)
         const update = {
-            predictedLabel: aiResult.sentimentSummary === 'Positive' ? 1 : 0,
+            predictedLabel: aiResult.sentimentSummary === 'Positive' ? 1 :
+                aiResult.sentimentSummary === 'Mixed' ? 2 : 0,
             aiSentimentSummary: aiResult.sentimentSummary,
             confidenceAvg: aiResult.confidenceAvg,
             analysis: aiResult.analysis,
@@ -177,7 +179,8 @@ router.post('/scan', async (req, res) => {
                 const aiResult = await callPredict(req.AI_SERVER_URL, review.text);
 
                 const update = {
-                    predictedLabel: aiResult.sentimentSummary === 'Positive' ? 1 : 0,
+                    predictedLabel: aiResult.sentimentSummary === 'Positive' ? 1 :
+                        aiResult.sentimentSummary === 'Mixed' ? 2 : 0,
                     aiSentimentSummary: aiResult.sentimentSummary,
                     confidenceAvg: aiResult.confidenceAvg,
                     analysis: aiResult.analysis,

@@ -106,7 +106,7 @@ import { ApiService } from '../../services/api.service';
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 </th>
                 <th class="col-id">Mã</th>
-                <th class="col-sentiment">Sắc thái AI</th>
+                <th class="col-sentiment" title="Phân loại cảm xúc bởi PhoBERT AI">Cảm xúc (AI)<sup class="hint-q">?</sup></th>
                 <th class="col-stars-h">Sao</th>
                 <th class="col-branch">Chi nhánh</th>
                 <th class="col-text">Nội dung</th>
@@ -311,6 +311,7 @@ import { ApiService } from '../../services/api.service';
     .col-chk, .col-star { width: 32px; text-align: center; }
     .col-id { width: 60px; }
     .col-sentiment { width: 80px; }
+    .hint-q { font-size: 9px; color: #999; cursor: help; margin-left: 1px; }
     .col-stars-h { width: 85px; }
     .col-branch { width: 14%; }
     .col-text { width: 30%; white-space: normal !important; }

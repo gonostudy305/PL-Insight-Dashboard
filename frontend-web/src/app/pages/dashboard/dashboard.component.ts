@@ -143,6 +143,27 @@ Chart.register(...registerables);
             </div>
           </div>
 
+          <!-- Insight Narrative Block -->
+          <div class="insight-panel" *ngIf="insightsLoaded">
+            <div class="insight-header">
+              <span class="insight-title">📊 Insight tự động</span>
+              <span class="insight-badge" [class.conf-high]="true">AI-generated</span>
+            </div>
+            <div class="insight-list" *ngIf="insights.length > 0; else insightEmpty">
+              <div class="insight-item" *ngFor="let ins of insights">
+                <span class="insight-icon">{{ ins.icon }}</span>
+                <span class="insight-text">{{ ins.text }}</span>
+                <span class="conf-badge" [class.conf-high]="ins.confidence==='high'" [class.conf-medium]="ins.confidence==='medium'" [class.conf-low]="ins.confidence==='low'">{{ ins.confidence }}</span>
+              </div>
+            </div>
+            <ng-template #insightEmpty>
+              <div class="insight-empty">
+                <span>⚠️</span>
+                <span>{{ insightsError ? 'Không thể tải insight. Vui lòng thử lại sau.' : 'Chưa đủ dữ liệu để sinh insight tự động.' }}</span>
+              </div>
+            </ng-template>
+          </div>
+
           <!-- Charts Grid -->
           <div class="panel-grid">
             <!-- Trend Chart -->
@@ -392,6 +413,39 @@ Chart.register(...registerables);
     .score-low { color: #dc3545; }
     .score-good { color: #059669; }
 
+    /* INSIGHT NARRATIVE */
+    .insight-panel {
+      background: #fff; border: 1px solid #e0e4eb; border-radius: 4px;
+      margin-bottom: 16px; overflow: hidden;
+    }
+    .insight-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: #f0f9ff; border-bottom: 1px solid #e0e4eb;
+    }
+    .insight-title { font-size: 13px; font-weight: 700; color: #1e40af; }
+    .insight-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 10px;
+      background: #dbeafe; color: #1e40af; font-weight: 600;
+    }
+    .insight-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .insight-item {
+      display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #333;
+      padding: 6px 8px; border-radius: 4px; background: #fafbfc;
+    }
+    .insight-icon { font-size: 16px; flex-shrink: 0; }
+    .insight-text { flex: 1; line-height: 1.45; }
+    .conf-badge {
+      font-size: 10px; padding: 2px 6px; border-radius: 8px;
+      font-weight: 600; flex-shrink: 0; white-space: nowrap;
+    }
+    .conf-high { background: #def7ec; color: #03543f; }
+    .conf-medium { background: #fef3c7; color: #92400e; }
+    .conf-low { background: #fde8e8; color: #c81e1e; }
+    .insight-empty {
+      padding: 16px 14px; font-size: 13px; color: #888;
+      display: flex; align-items: center; gap: 8px;
+    }
+
     @media (max-width: 768px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
     }
@@ -404,6 +458,9 @@ export class DashboardComponent implements OnInit {
   distribution: any[] = [];
   branches: any = null;
   trendData: any[] = [];
+  insights: any[] = [];
+  insightsLoaded = false;
+  insightsError = false;
 
   private trendChart: Chart | null = null;
 
@@ -418,6 +475,16 @@ export class DashboardComponent implements OnInit {
     this.api.getTrends().subscribe(data => {
       this.trendData = data || [];
       setTimeout(() => this.renderTrendChart(), 100);
+    });
+    this.api.getInsights().subscribe({
+      next: data => {
+        this.insights = data?.insights || [];
+        this.insightsLoaded = true;
+      },
+      error: () => {
+        this.insightsError = true;
+        this.insightsLoaded = true;
+      },
     });
   }
 

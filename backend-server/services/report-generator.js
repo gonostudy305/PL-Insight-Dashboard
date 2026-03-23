@@ -16,8 +16,12 @@ async function gatherReportData(db, days) {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const cutoffStr = cutoff.toISOString();
 
-    // Overview KPIs
+    // Time-range filter for this report period
+    const timeFilter = { publishedAtDate: { $gte: cutoffStr } };
+
+    // Overview KPIs (filtered by report period)
     const [overview] = await col.aggregate([
+        { $match: timeFilter },
         {
             $group: {
                 _id: null,
@@ -42,7 +46,7 @@ async function gatherReportData(db, days) {
     };
 
     const rawDistricts = await col.aggregate([
-        { $match: { district: { $exists: true, $ne: null } } },
+        { $match: { ...timeFilter, district: { $exists: true, $ne: null } } },
         {
             $group: {
                 _id: '$district',
@@ -83,6 +87,7 @@ async function gatherReportData(db, days) {
     };
 
     const negativeReviews = await col.find({
+        ...timeFilter,
         label: 0, text: { $ne: 'Không có bình luận', $exists: true },
     }).project({ text: 1 }).toArray();
 
@@ -101,13 +106,14 @@ async function gatherReportData(db, days) {
         .sort((a, b) => b.count - a.count)
         .slice(0, 8);
 
-    // Alert summary
+    // Alert summary (filtered by report period)
     const alertsCol = db.collection('alert_history');
+    const alertTimeFilter = { createdAt: { $gte: cutoff } };
     const alertCounts = {
-        total: await alertsCol.countDocuments(),
-        new: await alertsCol.countDocuments({ status: 'new' }),
-        acknowledged: await alertsCol.countDocuments({ status: 'acknowledged' }),
-        resolved: await alertsCol.countDocuments({ status: 'resolved' }),
+        total: await alertsCol.countDocuments(alertTimeFilter),
+        new: await alertsCol.countDocuments({ ...alertTimeFilter, status: 'new' }),
+        acknowledged: await alertsCol.countDocuments({ ...alertTimeFilter, status: 'acknowledged' }),
+        resolved: await alertsCol.countDocuments({ ...alertTimeFilter, status: 'resolved' }),
     };
 
     return {
