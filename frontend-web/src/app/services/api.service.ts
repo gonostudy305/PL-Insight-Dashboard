@@ -124,6 +124,11 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/suggestions/${encodeURIComponent(reviewId)}`);
     }
 
+    // ── Insights ──
+    getInsights(): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/insights`);
+    }
+
     // ── Health ──
     getHealth(): Observable<any> {
         return this.http.get(`${this.baseUrl}/health`);

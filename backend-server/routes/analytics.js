@@ -329,4 +329,199 @@ router.get('/keywords', async (req, res) => {
     }
 });
 
+/**
+ * GET /api/analytics/insights — Auto-generated narrative insights
+ *
+ * LOCKED RESPONSE CONTRACT:
+ * {
+ *   insights: InsightItem[],     // always present, may be empty array
+ *   generatedAt: string          // always present, ISO 8601 timestamp
+ * }
+ *
+ * InsightItem:
+ * {
+ *   type: string,                // always present — enum: 'topRiskDistrict' | 'topGrowingIssue' | 'peakNegativeHour' | 'lowConfidenceCount'
+ *   icon: string,                // always present — emoji string
+ *   text: string,                // always present — human-readable narrative in Vietnamese
+ *   confidence: string,          // always present — enum: 'high' | 'medium' | 'low'
+ *   data: object | null,         // always present — structured data backing the insight, null if insufficient data
+ *   insufficientData?: boolean   // optional — true when sample size too small for reliable insight
+ * }
+ *
+ * Sample-size thresholds:
+ *   - District insight: min 10 reviews, confidence 'high' at 50+, 'medium' at 20+
+ *   - Issue growth: baseline ≥5 last week, confidence 'high' at 20+
+ *   - Peak hours: min 10 reviews/hour, confidence 'high' at 50+
+ *   - Low confidence count: always 'high' (exact count)
+ */
+router.get('/insights', async (req, res) => {
+    try {
+        const collection = req.db.collection('Master_Final_Analysis');
+        const MIN_DISTRICT_REVIEWS = 10;  // minimum sample for district insight
+        const MIN_KEYWORD_BASELINE = 5;   // minimum count for keyword growth
+
+        const insights = [];
+
+        // ── 1) Top Risk District ──
+        const districtStats = await collection.aggregate([
+            { $match: { district: { $exists: true, $ne: null } } },
+            {
+                $group: {
+                    _id: '$district',
+                    total: { $sum: 1 },
+                    negative: { $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] } },
+                }
+            },
+            { $match: { total: { $gte: MIN_DISTRICT_REVIEWS } } },
+            { $addFields: { negRate: { $multiply: [{ $divide: ['$negative', '$total'] }, 100] } } },
+            { $sort: { negRate: -1 } },
+            { $limit: 1 },
+        ]).toArray();
+
+        if (districtStats.length > 0) {
+            const d = districtStats[0];
+            insights.push({
+                type: 'topRiskDistrict',
+                icon: '🔴',
+                text: `Quận rủi ro cao nhất: ${d._id} (${Math.round(d.negRate)}% tiêu cực, ${d.total} đánh giá)`,
+                confidence: d.total >= 50 ? 'high' : d.total >= 20 ? 'medium' : 'low',
+                data: { district: d._id, negativeRate: Math.round(d.negRate * 100) / 100, total: d.total },
+            });
+        }
+
+        // ── 2) Top Growing Issue (this week vs last week) ──
+        const now = new Date();
+        const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
+        const thisWeekStr = oneWeekAgo.toISOString();
+        const lastWeekStr = twoWeeksAgo.toISOString();
+        const nowStr = now.toISOString();
+
+        const ISSUE_GROUPS = {
+            'Chờ lâu': ['đợi', 'chờ', 'lâu', 'chậm', 'wait', 'slow'],
+            'Nhân viên': ['nhân viên', 'phục vụ', 'thái độ', 'staff'],
+            'Chất lượng': ['dở', 'tệ', 'chất lượng', 'nhạt', 'không ngon'],
+            'Không gian': ['không gian', 'chỗ ngồi', 'chật', 'ồn'],
+            'Vệ sinh': ['bẩn', 'vệ sinh', 'sạch', 'ruồi', 'kiến'],
+            'Giá cả': ['giá', 'đắt', 'mắc', 'expensive'],
+        };
+
+        // Count keywords this week vs last week
+        const [thisWeekReviews, lastWeekReviews] = await Promise.all([
+            collection.find({
+                label: 0, publishedAtDate: { $gte: thisWeekStr },
+                text: { $ne: 'Không có bình luận', $exists: true },
+            }).project({ text: 1 }).toArray(),
+            collection.find({
+                label: 0, publishedAtDate: { $gte: lastWeekStr, $lt: thisWeekStr },
+                text: { $ne: 'Không có bình luận', $exists: true },
+            }).project({ text: 1 }).toArray(),
+        ]);
+
+        function countKeywords(reviews) {
+            const counts = {};
+            for (const cat of Object.keys(ISSUE_GROUPS)) counts[cat] = 0;
+            for (const r of reviews) {
+                const text = (r.text || '').toLowerCase();
+                for (const [cat, patterns] of Object.entries(ISSUE_GROUPS)) {
+                    if (patterns.some(p => text.includes(p))) counts[cat]++;
+                }
+            }
+            return counts;
+        }
+
+        const thisWeekCounts = countKeywords(thisWeekReviews);
+        const lastWeekCounts = countKeywords(lastWeekReviews);
+
+        let topGrowth = null;
+        let maxGrowthRate = 0;
+        for (const cat of Object.keys(ISSUE_GROUPS)) {
+            const prev = lastWeekCounts[cat] || 0;
+            const curr = thisWeekCounts[cat] || 0;
+            if (prev >= MIN_KEYWORD_BASELINE && curr > prev) {
+                const growthRate = Math.round((curr - prev) / prev * 100);
+                if (growthRate > maxGrowthRate) {
+                    maxGrowthRate = growthRate;
+                    topGrowth = { category: cat, thisWeek: curr, lastWeek: prev, growthRate };
+                }
+            }
+        }
+
+        if (topGrowth) {
+            insights.push({
+                type: 'topGrowingIssue',
+                icon: '📈',
+                text: `Vấn đề tăng mạnh nhất: "${topGrowth.category}" (+${topGrowth.growthRate}% so tuần trước)`,
+                confidence: topGrowth.lastWeek >= 20 ? 'high' : 'medium',
+                data: topGrowth,
+            });
+        } else {
+            insights.push({
+                type: 'topGrowingIssue',
+                icon: '📊',
+                text: 'Chưa phát hiện vấn đề nào tăng đột biến tuần này',
+                confidence: thisWeekReviews.length >= 10 ? 'medium' : 'low',
+                insufficientData: thisWeekReviews.length < 10,
+                data: null,
+            });
+        }
+
+        // ── 3) Peak Negative Hours ──
+        const hourStats = await collection.aggregate([
+            {
+                $group: {
+                    _id: '$hour',
+                    total: { $sum: 1 },
+                    negative: { $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] } },
+                }
+            },
+            { $match: { total: { $gte: 10 } } },
+            { $addFields: { negRate: { $multiply: [{ $divide: ['$negative', '$total'] }, 100] } } },
+            { $sort: { negRate: -1 } },
+            { $limit: 3 },
+        ]).toArray();
+
+        if (hourStats.length > 0) {
+            const peak = hourStats[0];
+            const peakHours = hourStats.map(h => `${h._id}h`).join(', ');
+            insights.push({
+                type: 'peakNegativeHour',
+                icon: '⏰',
+                text: `Khung giờ tiêu cực cao nhất: ${peakHours} (${Math.round(peak.negRate)}% tiêu cực)`,
+                confidence: peak.total >= 50 ? 'high' : 'medium',
+                data: hourStats.map(h => ({
+                    hour: h._id,
+                    negativeRate: Math.round(h.negRate * 100) / 100,
+                    total: h.total,
+                })),
+            });
+        }
+
+        // ── 4) Low-confidence Review Count ──
+        const lowConfCount = await collection.countDocuments({
+            analyzedAt: { $exists: true },
+            confidenceAvg: { $lt: 0.7 },
+        });
+        const totalAnalyzed = await collection.countDocuments({
+            analyzedAt: { $exists: true },
+        });
+
+        if (totalAnalyzed > 0) {
+            insights.push({
+                type: 'lowConfidenceCount',
+                icon: '⚠️',
+                text: lowConfCount > 0
+                    ? `${lowConfCount} review có độ tin cậy thấp (<70%) — cần kiểm tra thủ công`
+                    : 'Tất cả review đã phân tích đều có độ tin cậy cao (≥70%)',
+                confidence: 'high',
+                data: { lowConfCount, totalAnalyzed, rate: Math.round(lowConfCount / totalAnalyzed * 10000) / 100 },
+            });
+        }
+
+        res.json({ insights, generatedAt: new Date().toISOString() });
+    } catch (err) {
+        errorResponse(res, 500, 'ERR_INSIGHTS', err.message);
+    }
+});
+
 module.exports = router;

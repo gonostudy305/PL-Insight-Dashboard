@@ -17,7 +17,7 @@ import { ApiService } from '../../services/api.service';
         <div class="kv-top-actions">
           <div class="search-wrap">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-            <input type="text" placeholder="Theo chi nhánh, nội dung đánh giá">
+            <input type="text" placeholder="Theo chi nhánh, nội dung đánh giá" [(ngModel)]="searchText" (keyup.enter)="loadPage(1)">
           </div>
           <button class="btn-outline">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -85,7 +85,7 @@ import { ApiService } from '../../services/api.service';
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 </th>
                 <th class="col-id">Mã ĐG</th>
-                <th class="col-sentiment">Sắc thái</th>
+                <th class="col-sentiment" title="Phân loại cảm xúc bởi PhoBERT AI">Cảm xúc (AI)<sup class="hint-q">?</sup></th>
                 <th class="col-stars-h">Sao</th>
                 <th class="col-branch">Chi nhánh</th>
                 <th class="col-text">Nội dung đánh giá</th>
@@ -263,6 +263,7 @@ import { ApiService } from '../../services/api.service';
     .col-chk, .col-star { width: 32px; text-align: center; }
     .col-id { width: 75px; }
     .col-sentiment { width: 80px; }
+    .hint-q { font-size: 9px; color: #999; cursor: help; margin-left: 1px; }
     .col-stars-h { width: 90px; }
     .col-branch { width: 15%; }
     .col-text { width: 35%; white-space: normal !important; }
@@ -313,6 +314,7 @@ export class ReviewsComponent implements OnInit {
   totalPages = 1;
   sentimentFilter = '';
   starFilter = '';
+  searchText = '';
 
   constructor(private api: ApiService) { }
 
@@ -320,7 +322,11 @@ export class ReviewsComponent implements OnInit {
 
   loadPage(page: number) {
     if (page < 1) return;
-    this.api.getReviews({ page, limit: 15, sort: 'publishedAtDate', order: 'desc' }).subscribe(data => {
+    const params: any = { page, limit: 15, sort: 'publishedAtDate', order: 'desc' };
+    if (this.sentimentFilter) params.sentiment = this.sentimentFilter;
+    if (this.starFilter) params.stars = this.starFilter;
+    if (this.searchText.trim()) params.search = this.searchText.trim();
+    this.api.getReviews(params).subscribe(data => {
       this.reviews = data.data;
       this.currentPage = data.page;
       this.totalPages = data.totalPages;
