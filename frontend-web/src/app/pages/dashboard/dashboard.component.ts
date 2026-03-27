@@ -61,6 +61,7 @@ Chart.register(...registerables);
             <div class="filter-title">Thời gian</div>
             <div class="filter-content">
               <select>
+                <option selected>Toàn bộ</option>
                 <option>Hôm nay</option>
                 <option>Hôm qua</option>
                 <option>Tuần này</option>
@@ -259,7 +260,10 @@ Chart.register(...registerables);
     }
 
     /* TOP BAR — identical to /reviews */
-    .kv-header-row { display: flex; padding: 12px 16px; gap: 16px; }
+    .kv-header-row { 
+      display: flex; padding: 12px 16px; gap: 16px; 
+      flex-shrink: 0; background: #f4f5f7; z-index: 10;
+    }
     .kv-title-area { width: 240px; flex-shrink: 0; display: flex; align-items: center; }
     .kv-title-area h2 { font-size: 1.15rem; font-weight: 700; color: #333; margin: 0; }
     .kv-top-actions { flex: 1; display: flex; align-items: center; gap: 10px; }
@@ -299,13 +303,14 @@ Chart.register(...registerables);
     .report-item:hover { background: #f0f4ff; color: #0070f4; }
 
     /* BODY ROW */
-    .kv-body-row { display: flex; flex: 1; padding: 0 16px 16px 16px; gap: 16px; align-items: flex-start; }
+    .kv-body-row { display: flex; flex: 1; padding: 0 16px 16px 16px; gap: 16px; align-items: flex-start; min-height: 0; }
 
     /* SIDEBAR — same 200px width */
-    .kv-sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+    .kv-sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; padding-right: 4px; }
     .filter-box {
       background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
       border: 1px solid #e0e4eb;
+      flex-shrink: 0;
     }
     .filter-title {
       padding: 10px 12px; font-size: 13px; font-weight: 700; color: #333;
@@ -332,7 +337,7 @@ Chart.register(...registerables);
     .s-val.red { color: #dc3545; }
 
     /* CONTENT AREA */
-    .kv-content-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+    .kv-content-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; padding-right: 4px; }
 
     /* KPI ROW — compact, horizontal */
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }

@@ -17,21 +17,18 @@ Chart.register(...registerables);
         <div class="header-filters">
           <div class="filter-chip">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <select>
-              <option>30 ngày gần nhất</option>
-              <option>7 ngày gần nhất</option>
-              <option>90 ngày gần nhất</option>
-              <option>Toàn bộ</option>
+            <select [(ngModel)]="selectedDays" (ngModelChange)="onFilterChange()">
+              <option value="">Toàn bộ</option>
+              <option value="30">30 ngày gần nhất</option>
+              <option value="7">7 ngày gần nhất</option>
+              <option value="90">90 ngày gần nhất</option>
             </select>
           </div>
           <div class="filter-chip">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <select>
-              <option>Tất cả khu vực</option>
-              <option>Hai Bà Trưng</option>
-              <option>Cầu Giấy</option>
-              <option>Hoàng Mai</option>
-              <option>Đống Đa</option>
+            <select [(ngModel)]="selectedDistrict" (ngModelChange)="onFilterChange()">
+              <option value="all">Tất cả khu vực</option>
+              <option *ngFor="let d of districtOptions" [value]="d">{{ d }}</option>
             </select>
           </div>
           <select class="metric-select" [(ngModel)]="trendMetric" (change)="renderTrendChart()">
@@ -183,13 +180,14 @@ Chart.register(...registerables);
     /* ── PAGE ── */
     .analytics-page {
       background: #f8f9fb; min-height: calc(100vh - 52px);
-      padding: 20px 28px 32px; font-family: 'Segoe UI', -apple-system, Arial, sans-serif;
+      padding: 0 28px 32px; font-family: 'Segoe UI', -apple-system, Arial, sans-serif;
     }
 
     /* ── HEADER ── */
     .page-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
+      margin-bottom: 18px; padding-top: 20px; padding-bottom: 15px;
+      position: sticky; top: 0; z-index: 10; background: #f8f9fb;
     }
     .page-title { font-size: 22px; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.3px; }
     .header-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -406,9 +404,32 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
 
   private maxRisk = 1;
 
+  // ── Filter state ──
+  selectedDays: string = '';
+  selectedDistrict: string = 'all';
+  districtOptions: string[] = [];
+
+  get filterParams(): any {
+    const p: any = {};
+    if (this.selectedDays) p.days = this.selectedDays;
+    if (this.selectedDistrict && this.selectedDistrict !== 'all') p.district = this.selectedDistrict;
+    return p;
+  }
+
   constructor(private api: ApiService) { }
 
   ngOnInit() {
+    this.loadDistrictOptions();
+    this.loadAllData();
+  }
+
+  ngAfterViewInit() { }
+
+  onFilterChange() {
+    this.loadAllData();
+  }
+
+  private loadAllData() {
     this.loadInsights();
     this.loadDistricts();
     this.loadKeywords();
@@ -417,7 +438,17 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
     this.loadSessionChart();
   }
 
-  ngAfterViewInit() { }
+  loadDistrictOptions() {
+    this.api.getDistrictHeatmap().subscribe({
+      next: data => {
+        this.districtOptions = (Array.isArray(data) ? data : [])
+          .map((d: any) => d.district)
+          .filter((d: string) => d && d !== 'Khác')
+          .sort();
+      },
+      error: () => { },
+    });
+  }
 
   loadInsights() {
     this.api.getInsights().subscribe({
@@ -427,7 +458,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   }
 
   loadDistricts() {
-    this.api.getDistrictHeatmap().subscribe({
+    this.api.getDistrictHeatmap(this.filterParams).subscribe({
       next: data => {
         this.districts = Array.isArray(data) ? data : [];
         this.maxRisk = Math.max(...this.districts.map(d => d.riskScore || 0), 1);
@@ -441,7 +472,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   }
 
   loadKeywords() {
-    this.api.getKeywords().subscribe({
+    this.api.getKeywords(this.filterParams).subscribe({
       next: data => {
         this.keywords = data.data || [];
         this.totalNegativeReviews = data.totalNegativeReviews || 0;
@@ -452,7 +483,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   }
 
   loadTrends() {
-    this.api.getTrends().subscribe({
+    this.api.getTrends(this.filterParams).subscribe({
       next: data => {
         this.trends = Array.isArray(data) ? data : data.value || [];
         setTimeout(() => this.renderTrendChart(), 100);
@@ -528,7 +559,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
 
   // ── Heatmap ──
   loadTimeHeatmap() {
-    this.api.getHeatmap().subscribe({
+    this.api.getHeatmap(this.filterParams).subscribe({
       next: (data: any[]) => {
         this.timeHeatmapGrid = Array.from({ length: 24 }, () => Array(7).fill(0));
         for (const item of data) {
@@ -557,7 +588,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   private readonly SESSION_ORDER = ['Sáng', 'Trưa', 'Chiều', 'Tối'];
 
   loadSessionChart() {
-    this.api.getBySession().subscribe({
+    this.api.getBySession(this.filterParams).subscribe({
       next: (data: any[]) => {
         const sorted = this.SESSION_ORDER.map(s =>
           data.find(d => d.session === s) || { session: s, total: 0, negative: 0, avgStars: 0 }

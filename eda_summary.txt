@@ -1,0 +1,562 @@
+--- code ---
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+import seaborn as sns
+--- markdown ---
+# 1 - Quan sát dữ liệu
+--- code ---
+df = pd.read_csv('preprocessed_data.csv')
+
+df.head()
+--- code ---
+df.info()
+--- code ---
+df.describe()
+--- markdown ---
+# 2 - Feature engineering & chuẩn hóa biến
+--- code ---
+# ==============================
+# FEATURE ENGINEERING
+# ==============================
+
+# ------------------------------
+# Ensure publishedAtDate is datetime
+# ------------------------------
+df['publ
+--- code ---
+# ------------------------------
+# 2. Nhóm độ dài review
+# ------------------------------
+# Khởi tạo cột dạng object
+df['text_length_group'] = None
+
+# 1. Gán nhóm No text
+df.loc[df['text_length'] == 0
+--- markdown ---
+Đối với các review có nội dung, nhóm nghiên cứu áp dụng phương pháp phân vị (quartile-based segmentation, q=4) nhằm phân chia độ dài nội dung thành bốn nhóm cân bằng về kích thước mẫu. Cách tiếp cận n
+--- code ---
+# ------------------------------
+# 3. Phân nhóm mức sao
+# ------------------------------
+df['rating_group'] = df['stars'].apply(
+    lambda x: 'Positive' if x >= 4 else 'Negative'
+)
+
+df.head()
+--- markdown ---
+Nhóm 3 sao được xếp vào Negative thay vì Neutral do phần lớn nội dung bình luận ở mức này thể hiện trải nghiệm chưa hài lòng thay vì trung lập thực sự.
+--- code ---
+# ==============================
+# 4. Chuẩn hóa tên chi nhánh để trực quan hóa
+# ==============================
+
+mask_unknown = (
+    (df['street'] == 'Unknown Street') &
+    (df['placeId'] == 'ChIJY_
+--- markdown ---
+Sau khi kiểm tra thì street = 'Unknown Street' là chi nhánh có placeID = 'ChIJY_Rr1JGtNTERnVNiUS_oQ9s' --> Giá trị của cột street sẽ thay thế bằng 'Khu đô thị Văn Quán'.
+--- code ---
+# ==============================
+# 5. Nhóm quy mô chi nhánh theo reviewsCount
+# ==============================
+
+branch_size_map = (
+    df[['placeId', 'reviewsCount']]
+    .drop_duplicates()
+)
+
+branch
+--- code ---
+df.head()
+--- code ---
+df.to_csv('preprocessed_data.csv', index=False, encoding='utf-8-sig')
+--- markdown ---
+# 3 - Phân tích
+--- markdown ---
+## 3.1.1. Phân tích phân phối biến mục tiêu (stars)
+Đơn vị phân tích: từng đánh giá (review)
+
+Mục này tập trung phân tích phân phối mức sao đánh giá của khách hàng, nhằm nhận diện xu hướng đánh giá ch
+--- code ---
+# ==============================
+# Quy ước màu sắc dùng chung cho 3.1.1
+# ==============================
+
+star_color_map = {
+    1: '#DA3D20',
+    2: '#F8843F',
+    3: '#FFF19B',
+    4: '#3D45AA',
+   
+--- code ---
+# ==============================
+# Thống kê mô tả cho biến stars
+# ==============================
+
+stars_summary = {
+    'Số lượng đánh giá': df['stars'].count(),
+    'Giá trị trung bình': round(df['s
+--- markdown ---
+Nhận xét:
+- Không có giá trị ngoại lệ, các review đều có stars nằm trong khoảng 1-5 sao.
+- Trung vị là 5.0 cho thấy 50% các đánh giá của khách hàng đều cho mức 5 sao, kết hợp với giá trị trung bình ở 
+--- code ---
+# ==============================
+# Bảng phân phối mức sao đánh giá
+# ==============================
+
+star_summary = (
+    df['stars']
+    .value_counts()
+    .sort_index()
+    .reset_index()
+)
+
+star_s
+--- code ---
+# ==============================
+# Biểu đồ phân phối mức sao đánh giá
+# ==============================
+
+plt.figure(figsize=(10, 8))
+
+bars = plt.bar(
+    star_summary['stars'],
+    star_summary['review
+--- code ---
+# ------------------------------
+# Biểu đồ Boxplot cho biến stars
+# ------------------------------
+sns.boxplot(
+    data=df,
+    x='stars',
+    color=neutral_bar_color
+)
+plt.title('Phân phối mức đánh 
+--- markdown ---
+**Q1 – Phân phối mức đánh giá của khách hàng Phúc Long tại Hà Nội**
+Dựa trên biểu đồ phân phối số sao và boxplot, có thể nhận thấy rằng các đánh giá của khách hàng nghiêng mạnh về xu hướng tích cực. C
+--- code ---
+# ==============================
+# Pie chart: phân phối mức sao đánh giá
+# ==============================
+
+legend_labels = [
+    f'{star} sao'
+    for star in star_summary['stars']
+]
+
+plt.figure(figsi
+--- markdown ---
+Kết quả cho thấy các đánh giá tích cực (4–5 sao) chiếm tỷ trọng áp đảo, khoảng 70,5% tổng số review, phản ánh mức độ hài lòng chung của khách hàng đối với các chi nhánh Phúc Long tại Hà Nội. Tuy nhiên
+--- code ---
+# ------------------------------
+# Phân phối mức sao theo loại review
+# ------------------------------
+
+review_type_dist = (
+    df
+    .groupby(['stars', 'customer_segment'])
+    .size()
+    .reset_i
+--- code ---
+# ==============================
+# Biểu đồ phân phối mức sao theo loại review
+# (hiển thị số lượng & tỷ lệ %)
+# ==============================
+
+# Chuẩn bị dữ liệu
+review_type_plot = (
+    df
+    .grou
+--- markdown ---
+Biểu đồ cho thấy sự khác biệt rõ rệt về hành vi đánh giá theo từng mức sao. Ở mức 1 sao, phần lớn các đánh giá (87,4%) là review có nội dung, cho thấy khi trải nghiệm tiêu cực, khách hàng có xu hướng 
+--- markdown ---
+## 3.1.2. Phân tích hành vi phản hồi từ phía khách hàng
+--- code ---
+# Kiểm tra dữ liệu
+df[['stars', 'is_responded']].info()
+df['is_responded'].value_counts()
+--- code ---
+df_resp = df.copy()
+
+response_by_stars = (
+    df_resp
+        .groupby('stars')['is_responded']
+        .value_counts()
+        .reset_index(name='response_count')
+)
+
+response_by_stars
+--- markdown ---
+Có thể nhận thấy là gần như 100% đánh giá của khách hàng đều không nhận được phản hồi từ khách hàng, bất kể là khách hàng đã để lại bao nhiêu sao. Chỉ có duy nhất 1 đánh giá 5 sao được Phúc Long phản 
+--- markdown ---
+## 3.1.3. Phân tích theo khu vực địa lý và chi nhánh
+--- markdown ---
+### a. Phân tích theo mức độ hiện diện và quy mô đánh giá theo chi nhánh
+--- code ---
+# ==============================
+# Tạo bản sao dữ liệu cho phân tích quy mô chi nhánh
+# ==============================
+
+df_branch = df.copy()
+--- code ---
+# ==============================
+# Tổng hợp quy mô review theo chi nhánh
+# ==============================
+
+branch_volume = (
+    df_branch
+    .groupby(['placeId', 'street_short'])
+    .agg(
+        r
+--- code ---
+# ==============================
+# Tính mức độ bao phủ dữ liệu thu thập
+# ==============================
+
+branch_volume['coverage_ratio'] = (
+    branch_volume['review_count_sample']
+    / branch_volu
+--- code ---
+# ==============================
+# Sắp xếp chi nhánh theo reviewsCount giảm dần
+# ==============================
+
+branch_volume_sorted = branch_volume.sort_values(
+    by='review_count_google',
+    as
+--- code ---
+# ==============================
+# Biểu đồ quy mô review hiển thị theo chi nhánh
+# ==============================
+
+plt.figure(figsize=(12, 5))
+
+plt.bar(
+    branch_volume_sorted['street_short'],
+    b
+--- markdown ---
+Biểu đồ cho thấy quy mô đánh giá giữa các chi nhánh phân hóa rất mạnh: chỉ khoảng 6-7 chi nhánh vượt đường trung bình hệ thống (~318 review), trong khi phần lớn chi nhánh còn lại nằm thấp hơn đáng kể.
+--- code ---
+# ==============================
+# Biểu đồ so sánh review hiển thị và review thu thập
+# ==============================
+
+plt.figure(figsize=(8, 6))
+
+plt.scatter(
+    branch_volume['review_count_google'
+--- markdown ---
+Tất cả các điểm dữ liệu đều nằm dưới đường y = x, cho thấy số lượng review thu thập được luôn thấp hơn tổng số review hiển thị trên Google Maps ở mọi chi nhánh. Khoảng cách giữa điểm dữ liệu và đường 
+--- markdown ---
+### b. Phân tích chất lượng đánh giá
+--- code ---
+# ==============================
+# Tạo bản sao dữ liệu cho phân tích chất lượng
+# ==============================
+
+df_quality = df.copy()
+--- code ---
+# ==============================
+# Các chỉ số chất lượng theo chi nhánh
+# ==============================
+
+branch_quality = (
+    df_quality
+        .groupby(['placeId', 'street_short'])
+        .agg(
+
+--- code ---
+# ==============================
+# Baseline chất lượng toàn hệ thống
+# ==============================
+
+system_avg_rating = df_quality['stars'].mean()
+system_negative_ratio = (df_quality['stars'] <= 3)
+--- code ---
+# ==============================
+# Biểu đồ 1: Điểm sao trung bình theo chi nhánh
+# (xếp hạng từ thấp → cao, có baseline)
+# ==============================
+
+branch_quality_sorted = branch_quality.sort_v
+--- markdown ---
+Biểu đồ cho thấy sự chênh lệch rõ rệt về chất lượng trải nghiệm giữa các chi nhánh. Một số chi nhánh có điểm sao trung bình thấp hơn đáng kể so với baseline toàn hệ thống, trong khi chỉ một số ít chi 
+--- code ---
+# ==============================
+# Biểu đồ 2: Tỷ lệ review tiêu cực (1–3 sao) theo chi nhánh
+# ==============================
+
+branch_quality_neg_sorted = branch_quality.sort_values(
+    by='negative_
+--- markdown ---
+Tỷ lệ đánh giá tiêu cực không phân bố đồng đều giữa các chi nhánh. Một số chi nhánh có tỷ lệ review 1–3 sao cao gấp đôi hoặc hơn mức trung bình toàn hệ thống, cho thấy đây là các điểm nóng rủi ro về t
+--- code ---
+# ==============================
+# Biểu đồ 3: Phân nhóm chất lượng trải nghiệm theo chi nhánh
+# (Chỉ hiển thị 5 tốt nhất & 5 kém nhất)
+# ==============================
+
+# -----------------------------
+--- markdown ---
+Biểu đồ scatter cho thấy các chi nhánh có chất lượng trải nghiệm không phân bố ngẫu nhiên mà hình thành các cụm rõ rệt. Nhóm chi nhánh nằm ở góc trên bên trái – với điểm sao trung bình thấp hơn baseli
+--- markdown ---
+## 3.1.4. Phân tích theo thời gian
+--- markdown ---
+### a. Phân tích theo tháng/năm (xu hướng dài hạn)
+--- code ---
+## 3.1.4. Phân tích theo thời gian
+
+# ==============================
+# Tạo bản sao dữ liệu cho phân tích theo thời gian
+# ==============================
+
+df_time = df.copy()
+--- code ---
+# ==============================
+# PHÂN TÍCH 12 THÁNG TỔNG QUÁT (GỘP NHIỀU NĂM)
+# ==============================
+
+# Tạo biến tháng (1–12)
+df_time['review_month'] = df_time['publishedAtDate'].dt.month
+
+--- code ---
+# ==============================
+# BIỂU ĐỒ 1: Điểm sao trung bình theo 12 tháng
+# ==============================
+
+plt.figure(figsize=(10, 5))
+
+plt.plot(
+    monthly_overall['review_month'],
+    monthl
+--- code ---
+# ==============================
+# BẢNG ĐỐI CHIẾU SỐ LIỆU BIỂU ĐỒ 2
+# ==============================
+
+monthly_negative_table = (
+    df_time
+        .groupby('review_month')
+        .agg(
+            
+--- code ---
+# ==============================
+# BIỂU ĐỒ 2: Tỷ lệ review tiêu cực (1–3 sao) theo 12 tháng
+# Tỷ lệ tiêu cực tháng thứ m = (Số review tiêu cực tháng m/Tổng số review tháng m)
+# =======================
+--- markdown ---
+Hai biểu đồ cho thấy điểm đánh giá trung bình và tỷ lệ review tiêu cực có mối quan hệ nghịch chiều rõ rệt và biến động theo tháng trong năm. Nhìn tổng thể, điểm trung bình dao động trong khoảng 3.60–4
+--- code ---
+# ==============================
+# Tổng hợp điểm sao trung bình theo từng tháng (RIÊNG LẺ)
+# ==============================
+
+monthly_stars = (
+    df_time
+        .groupby('year_month')['stars']
+     
+--- code ---
+# ==============================
+# Baseline & điểm cực trị
+# ==============================
+
+baseline_monthly = monthly_stars['stars'].mean()
+
+min_point = monthly_stars.loc[monthly_stars['stars'].idxm
+--- code ---
+# ==============================
+# Biểu đồ xu hướng theo thời gian
+# ==============================
+
+plt.figure(figsize=(12, 5))
+
+plt.plot(
+    monthly_stars['year_month_dt'],
+    monthly_stars['stars
+--- markdown ---
+Biểu đồ cho thấy điểm đánh giá trung bình của khách hàng biến động rõ rệt theo thời gian và xoay quanh đường baseline ở mức khoảng 3.75 sao. Giai đoạn đầu năm 2019 ghi nhận một điểm rơi bất thường, vớ
+--- markdown ---
+### b. Phân tích theo giờ trong ngày & ngày trong tuần
+--- code ---
+# ------------------------------
+# Chuẩn hóa thứ trong tuần
+# ------------------------------
+
+weekday_order = [
+    'Monday', 'Tuesday', 'Wednesday',
+    'Thursday', 'Friday', 'Saturday', 'Sunday'
+]
+
+
+--- code ---
+# ------------------------------
+# Xác định review tiêu cực
+# ------------------------------
+
+df_time['is_low_rating'] = (df_time['stars'] <= 3).astype(int)
+
+# ------------------------------
+# Tổng hợ
+--- code ---
+# Pivot cho heatmap
+heatmap_matrix = heatmap_data.pivot(
+    index='review_weekday',
+    columns='review_hour',
+    values='low_rating_ratio'
+)
+--- code ---
+# ------------------------------
+# Heatmap
+# ------------------------------
+
+plt.figure(figsize=(14, 5))
+
+sns.heatmap(
+    heatmap_matrix,
+    cmap='Reds',
+    linewidths=0.5,
+    linecolor='white',
+ 
+--- markdown ---
+Heatmap cho thấy tỷ lệ review tiêu cực (1–3 sao) không phân bố đồng đều theo cả hai chiều thời gian là giờ trong ngày và ngày trong tuần, mà hình thành các vùng tập trung rõ rệt. Vào các ngày trong tu
+--- markdown ---
+## 3.1.5. Phân tích hành vi khách hàng
+--- markdown ---
+### a. Hành vi đánh giá theo mức sao và độ dài nội dung
+--- code ---
+# ==============================
+# Bảng phân bố độ dài review theo nhóm mức sao
+# ==============================
+
+length_rating_dist = (
+    df
+        .groupby(['rating_group', 'text_length_group'])
+
+--- code ---
+# Định nghĩa thứ tự mong muốn
+length_order = ['No text', 'Very short', 'Short', 'Long', 'Very long']
+
+# Ép kiểu categorical có thứ tự
+length_rating_dist['text_length_group'] = pd.Categorical(
+    leng
+--- code ---
+# ==============================
+# Biểu đồ: Phân bố độ dài review theo nhóm mức sao
+# ==============================
+
+colors = {
+    'Negative': '#DA3D20',
+    'Positive': '#427A43'
+}
+
+plt.figure(figs
+--- markdown ---
+### b. Hành vi đánh giá của Local Guide vs khách hàng thường
+--- code ---
+# ==============================
+# Chuẩn hóa nhãn Local Guide
+# ==============================
+
+df['user_type'] = df['isLocalGuide'].map(
+    {True: 'Local Guide', False: 'Khách hàng thường'}
+)
+
+df['u
+--- code ---
+# ==============================
+# So sánh mức sao trung bình theo loại người dùng
+# ==============================
+
+rating_by_user_type = (
+    df
+        .groupby('user_type')['stars']
+        .agg(
+--- code ---
+# ==============================
+# Biểu đồ: Điểm sao trung bình theo loại người dùng
+# ==============================
+
+plt.figure(figsize=(6, 5))
+
+bars = plt.bar(
+    rating_by_user_type['user_type'],
+--- code ---
+# ==============================
+# So sánh độ dài nội dung review theo loại người dùng
+# ==============================
+
+text_length_by_user = (
+    df
+        .groupby('user_type')['text_length']
+   
+--- code ---
+# ==============================
+# Biểu đồ: Độ dài nội dung review theo loại người dùng
+# ==============================
+
+plt.figure(figsize=(6, 5))
+
+bars = plt.bar(
+    text_length_by_user['user_type
+--- markdown ---
+### c. Hành vi đánh giá theo thời gian
+--- code ---
+# ==============================
+# Tổng hợp tỷ lệ review tiêu cực theo year_month & loại khách hàng
+# ==============================
+
+monthly_behavior_user = (
+    df
+        .groupby(['year_month', '
+--- code ---
+# ==========================================================
+# PHÂN TÍCH 12 THÁNG (GỘP THEO NĂM) THEO LOẠI KHÁCH HÀNG
+# ==========================================================
+
+# Tạo biến tháng
+df[
+--- code ---
+import matplotlib.lines as mlines
+
+plt.figure(figsize=(10, 5))
+
+color_map = {
+    'Khách hàng thường': '#4C72B0',
+    'Local Guide': '#F1C40F'
+}
+
+for user_type, color in color_map.items():
+
+    subset
+--- code ---
+# ------------------------------
+# Convert Period → Timestamp để vẽ
+# ------------------------------
+
+monthly_behavior_user['year_month_dt'] = (
+    monthly_behavior_user['year_month']
+    .dt.to_time
+--- code ---
+import matplotlib.lines as mlines
+
+# ==============================
+# Vẽ biểu đồ line chart theo year_month
+# ==============================
+
+plt.figure(figsize=(12, 5))
+
+color_map = {
+    'Khách hàng
+--- code ---
+# ==============================
+# Vẽ biểu đồ line chart theo year_month
+# ==============================
+
+plt.figure(figsize=(12, 5))
+color_map = {
+    'Khách hàng thường': '#4C72B0',   # xanh lam
+  
