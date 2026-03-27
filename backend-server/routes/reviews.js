@@ -42,6 +42,14 @@ router.get('/', async (req, res) => {
             ];
         }
 
+        if (req.query.days) {
+            const daysNum = parseInt(req.query.days);
+            if (daysNum > 0) {
+                const cutoff = new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000).toISOString();
+                filter.publishedAtDate = { $gte: cutoff };
+            }
+        }
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const sortObj = { [sort]: order === 'desc' ? -1 : 1 };
 

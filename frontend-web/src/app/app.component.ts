@@ -44,6 +44,9 @@ import { TopHeaderComponent } from './components/top-header/top-header.component
       display: flex;
       flex-direction: column;
       width: 100%;
+      margin-top: 52px;
+      height: calc(100vh - 52px);
+      overflow-y: auto;
     }
 
     /* ─── Standard ERP Page Layout Classes (Global) ─── */
@@ -51,8 +54,7 @@ import { TopHeaderComponent } from './components/top-header/top-header.component
     ::ng-deep .page-container {
       display: flex;
       flex: 1;
-      height: calc(100vh - 52px); /* 52px is top-header height */
-      overflow: hidden;
+      min-height: calc(100vh - 52px);
     }
 
     ::ng-deep .filter-sidebar {

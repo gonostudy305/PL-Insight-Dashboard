@@ -11,12 +11,35 @@ function errorResponse(res, status, code, message, details = null) {
     return res.status(status).json({ error: { code, message, details } });
 }
 
+/**
+ * Build MongoDB $match filter from ?days= and ?district= query params.
+ * @param {object} req - Express request
+ * @returns {object} MongoDB filter object (may be empty {})
+ */
+function buildDateDistrictFilter(req) {
+    const filter = {};
+    // Time range filter
+    const days = parseInt(req.query.days);
+    if (days && days > 0) {
+        const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+        filter.publishedAtDate = { $gte: cutoff };
+    }
+    // District filter
+    const district = req.query.district;
+    if (district && district !== 'all') {
+        filter.district = district;
+    }
+    return filter;
+}
+
 // GET /api/analytics/overview — System-wide KPIs (locked contract §4)
 router.get('/overview', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
 
+        const baseFilter = buildDateDistrictFilter(req);
         const [stats] = await collection.aggregate([
+            ...(Object.keys(baseFilter).length > 0 ? [{ $match: baseFilter }] : []),
             {
                 $group: {
                     _id: null,
@@ -79,7 +102,9 @@ router.get('/overview', async (req, res) => {
 router.get('/distribution', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
+        const baseFilter = buildDateDistrictFilter(req);
         const distribution = await collection.aggregate([
+            ...(Object.keys(baseFilter).length > 0 ? [{ $match: baseFilter }] : []),
             { $group: { _id: '$stars', count: { $sum: 1 } } },
             { $sort: { _id: 1 } },
         ]).toArray();
@@ -95,7 +120,9 @@ router.get('/distribution', async (req, res) => {
 router.get('/trends', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
+        const baseFilter = buildDateDistrictFilter(req);
         const trends = await collection.aggregate([
+            ...(Object.keys(baseFilter).length > 0 ? [{ $match: baseFilter }] : []),
             {
                 $group: {
                     _id: { year: '$year', month: '$month' },
@@ -146,7 +173,9 @@ router.get('/trends', async (req, res) => {
 router.get('/heatmap', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
+        const baseFilter = buildDateDistrictFilter(req);
         const heatmap = await collection.aggregate([
+            ...(Object.keys(baseFilter).length > 0 ? [{ $match: baseFilter }] : []),
             {
                 $group: {
                     _id: { hour: '$hour', day: '$day_of_week' },
@@ -173,7 +202,9 @@ router.get('/heatmap', async (req, res) => {
 router.get('/by-session', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
+        const baseFilter = buildDateDistrictFilter(req);
         const sessions = await collection.aggregate([
+            ...(Object.keys(baseFilter).length > 0 ? [{ $match: baseFilter }] : []),
             {
                 $group: {
                     _id: '$session',
@@ -209,8 +240,10 @@ const MIN_REVIEWS_THRESHOLD = 20; // below this, flag as low-sample
 router.get('/district-heatmap', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
+        const baseFilter = buildDateDistrictFilter(req);
+        const districtMatch = { district: { $exists: true, $ne: null }, ...baseFilter };
         const rawDistricts = await collection.aggregate([
-            { $match: { district: { $exists: true, $ne: null } } },
+            { $match: districtMatch },
             {
                 $group: {
                     _id: '$district',
@@ -277,10 +310,12 @@ router.get('/keywords', async (req, res) => {
         const collection = req.db.collection('Master_Final_Analysis');
 
         // Get all negative reviews with text
+        const baseFilter = buildDateDistrictFilter(req);
         const negativeReviews = await collection
             .find({
                 label: 0,
                 text: { $ne: 'Không có bình luận', $exists: true },
+                ...baseFilter,
             })
             .project({ text: 1 })
             .toArray();

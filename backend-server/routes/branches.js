@@ -89,15 +89,29 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET /api/branches/:placeId — Full branch detail (4 blocks + topIssues)
+// GET /api/branches/:placeId — Full branch detail (4 blocks + topIssues + sessionHeatmap)
 router.get('/:placeId', async (req, res) => {
     try {
         const collection = req.db.collection('Master_Final_Analysis');
         const placeId = req.params.placeId;
 
+        // First: verify branch exists at all (no date filter)
+        const branchExists = await collection.findOne({ placeId }, { projection: { branch_address: 1, district: 1 } });
+        if (!branchExists) {
+            return errorResponse(res, 404, 'ERR_BRANCH_NOT_FOUND', 'Branch not found');
+        }
+
+        // Build filter with optional days
+        const filter = { placeId };
+        const days = parseInt(req.query.days);
+        if (days && days > 0) {
+            const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+            filter.publishedAtDate = { $gte: cutoff };
+        }
+
         // 1) KPI + Star Distribution
         const [summary] = await collection.aggregate([
-            { $match: { placeId } },
+            { $match: filter },
             {
                 $group: {
                     _id: '$placeId',
@@ -117,8 +131,19 @@ router.get('/:placeId', async (req, res) => {
             }
         ]).toArray();
 
+        // If no data in selected time range, return zero-state (branch exists but no reviews in period)
         if (!summary) {
-            return errorResponse(res, 404, 'ERR_BRANCH_NOT_FOUND', 'Branch not found');
+            return res.json({
+                placeId,
+                branchAddress: branchExists.branch_address,
+                district: branchExists.district,
+                avgStars: 0, totalReviews: 0,
+                negativeCount: 0, positiveCount: 0,
+                negativeRate: 0, responseRate: 0, healthScore: 0,
+                starDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                monthlyTrend: [], recentReviews: [], topIssues: [], sessionRisk: {},
+                noDataInPeriod: true,
+            });
         }
 
         const negativeRate = summary.totalReviews > 0
@@ -133,8 +158,14 @@ router.get('/:placeId', async (req, res) => {
         ) / 100;
 
         // 2) Monthly Trend
+        const trendFilter = { ...filter, publishedAtDate: { $exists: true, $ne: null } };
+        // If days filter is applied, we don't need to change anything but merge filter
+        if (filter.publishedAtDate) {
+            trendFilter.publishedAtDate = filter.publishedAtDate;
+        }
+
         const monthlyTrend = await collection.aggregate([
-            { $match: { placeId, publishedAtDate: { $exists: true, $ne: null } } },
+            { $match: trendFilter },
             {
                 $group: {
                     _id: { $substr: ['$publishedAtDate', 0, 7] },
@@ -157,7 +188,7 @@ router.get('/:placeId', async (req, res) => {
         // 3) Recent Reviews (latest 20)
         const recentReviews = await collection
             .find({
-                placeId,
+                ...filter,
                 text: { $ne: 'Không có bình luận', $exists: true },
             })
             .sort({ publishedAtDate: -1 })
@@ -172,7 +203,8 @@ router.get('/:placeId', async (req, res) => {
         // 4) Top Issues (keyword extraction from negative reviews for this branch)
         const negativeReviews = await collection
             .find({
-                placeId, label: 0,
+                ...filter,
+                label: 0,
                 text: { $ne: 'Không có bình luận', $exists: true },
             })
             .project({ text: 1 })
@@ -211,6 +243,28 @@ router.get('/:placeId', async (req, res) => {
             .sort((a, b) => b.count - a.count)
             .slice(0, 5);
 
+        // 5) Session Heatmap
+        const sessionData = await collection.aggregate([
+            { $match: filter },
+            {
+                $group: {
+                    _id: '$session',
+                    total: { $sum: 1 },
+                    negative: { $sum: { $cond: [{ $eq: ['$label', 0] }, 1, 0] } }
+                }
+            }
+        ]).toArray();
+
+        const sessionRiskObj = {};
+        for (const s of sessionData) {
+            const name = s._id || 'Khác';
+            sessionRiskObj[name] = {
+                total: s.total,
+                negative: s.negative,
+                negativeRate: s.total > 0 ? Math.round(s.negative / s.total * 10000) / 100 : 0
+            };
+        }
+
         res.json({
             placeId: summary._id,
             branchAddress: summary.branchAddress,
@@ -238,6 +292,7 @@ router.get('/:placeId', async (req, res) => {
                 aiSentimentSummary: r.aiSentimentSummary,
             })),
             topIssues,
+            sessionRisk: sessionRiskObj,
         });
     } catch (err) {
         errorResponse(res, 500, 'ERR_BRANCH_DETAIL', err.message);

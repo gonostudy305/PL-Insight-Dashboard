@@ -36,4 +36,5 @@ nginx/temp/
 nginx/html/
 nginx/docs/
 
-.project/
+project/
+.agent/

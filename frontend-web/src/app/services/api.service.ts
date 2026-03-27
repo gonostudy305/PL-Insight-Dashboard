@@ -9,24 +9,24 @@ export class ApiService {
     constructor(private http: HttpClient) { }
 
     // ── Analytics ──
-    getOverview(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/overview`);
+    getOverview(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/overview`, { params: this.buildParams(params) });
     }
 
-    getDistribution(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/distribution`);
+    getDistribution(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/distribution`, { params: this.buildParams(params) });
     }
 
-    getTrends(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/trends`);
+    getTrends(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/trends`, { params: this.buildParams(params) });
     }
 
-    getHeatmap(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/heatmap`);
+    getHeatmap(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/heatmap`, { params: this.buildParams(params) });
     }
 
-    getBySession(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/by-session`);
+    getBySession(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/by-session`, { params: this.buildParams(params) });
     }
 
     // ── Branches ──
@@ -38,8 +38,8 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/branches/${encodeURIComponent(name)}`);
     }
 
-    getBranchDetail(placeId: string): Observable<any> {
-        return this.http.get(`${this.baseUrl}/branches/${encodeURIComponent(placeId)}`);
+    getBranchDetail(placeId: string, params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/branches/${encodeURIComponent(placeId)}`, { params: this.buildParams(params) });
     }
 
     // ── Reviews ──
@@ -102,12 +102,12 @@ export class ApiService {
     }
 
     // ── Analytics Extended ──
-    getDistrictHeatmap(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/district-heatmap`);
+    getDistrictHeatmap(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/district-heatmap`, { params: this.buildParams(params) });
     }
 
-    getKeywords(): Observable<any> {
-        return this.http.get(`${this.baseUrl}/analytics/keywords`);
+    getKeywords(params: any = {}): Observable<any> {
+        return this.http.get(`${this.baseUrl}/analytics/keywords`, { params: this.buildParams(params) });
     }
 
     // ── Telegram ──
@@ -124,6 +124,10 @@ export class ApiService {
         return this.http.get(`${this.baseUrl}/suggestions/${encodeURIComponent(reviewId)}`);
     }
 
+    getAIResponse(reviewId: string): Observable<any> {
+        return this.http.post(`${this.baseUrl}/suggestions/${encodeURIComponent(reviewId)}/ai-response`, {});
+    }
+
     // ── Insights ──
     getInsights(): Observable<any> {
         return this.http.get(`${this.baseUrl}/analytics/insights`);
@@ -132,5 +136,16 @@ export class ApiService {
     // ── Health ──
     getHealth(): Observable<any> {
         return this.http.get(`${this.baseUrl}/health`);
+    }
+
+    // ── Helpers ──
+    private buildParams(params: any): HttpParams {
+        let httpParams = new HttpParams();
+        Object.keys(params).forEach(key => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                httpParams = httpParams.set(key, params[key]);
+            }
+        });
+        return httpParams;
     }
 }

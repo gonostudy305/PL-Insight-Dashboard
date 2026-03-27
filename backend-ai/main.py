@@ -121,18 +121,18 @@ async def load_model():
 
     model_path = Path(MODEL_PATH)
     if not model_path.exists():
-        print(f"⚠️  Model path '{MODEL_PATH}' not found. Endpoints will return errors.")
+        print(f"Model path '{MODEL_PATH}' not found. Endpoints will return errors.")
         return
 
-    print(f"🔄 Loading PhoBERT model from {model_path}...")
+    print(f"Loading PhoBERT model from {model_path}...")
     try:
         tokenizer = AutoTokenizer.from_pretrained(str(model_path))
         model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
         model.to(device)
         model.eval()
-        print(f"✅ Model loaded on {device} successfully!")
+        print(f"Model loaded on {device} successfully!")
     except Exception as e:
-        print(f"❌ Failed to load model: {e}")
+        print(f"Failed to load model: {e}")
 
 
 # ── Inference helper ──

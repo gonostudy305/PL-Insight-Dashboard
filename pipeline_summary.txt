@@ -1,0 +1,533 @@
+--- markdown ---
+#Library
+--- code ---
+# Cài đặt thư viện kết nối MongoDB và xử lý ngôn ngữ
+!pip install pymongo dnspython transformers underthesea -q
+!pip install googletrans==4.0.0-rc1
+!pip install deep-translator langdetect
+!pip install
+--- code ---
+from google.colab import userdata
+import os
+import pymongo
+import pandas as pd
+import glob
+import numpy as np
+from pymongo import UpdateMany, UpdateOne
+import matplotlib.pyplot as plt
+import seaborn a
+--- code ---
+from google.colab import drive
+drive.mount('/content/drive')
+--- markdown ---
+# Load Data --> MongoDB
+--- code ---
+# Lấy URI từ Secrets
+uri = userdata.get('MONGO_URI')
+client = pymongo.MongoClient(uri)
+
+# Chọn Database và Collection theo đúng thiết kế đồ án
+db = client["PhucLong_Hanoi"]
+col_reviews = db["Raw_Revie
+--- code ---
+path = '/content/drive/Shareddrives/PTDL WEB - NHÓM 2/DATA/Raw_data'
+
+# Quét tất cả Xlsx
+files = glob.glob(os.path.join(path, "*.xlsx"))
+
+print(f"🔍 Tìm thấy {len(files)} file dữ liệu. Bắt đầu quá trì
+--- code ---
+# Ví dụ pipeline để join 3 bảng ngay trên MongoDB
+pipeline = [
+    {
+        "$lookup": {
+            "from": "Stores",
+            "localField": "placeId",
+            "foreignField": "placeId",
+    
+--- code ---
+# 1. Trích xuất các cột thuộc thực thể Store
+store_columns = ['placeId', 'address', 'totalScore', 'reviewsCount', 'state', 'street']
+stores_df = raw_data[store_columns].drop_duplicates(subset=['placeI
+--- code ---
+# 1. Trích xuất các cột thuộc thực thể Reviewer
+reviewer_columns = ['reviewerId', 'name', 'isLocalGuide', 'reviewerNumberOfReviews']
+reviewers_df = raw_data[reviewer_columns].drop_duplicates(subset=['
+--- code ---
+# 1. Định nghĩa các cột thuộc thực thể Review theo sơ đồ của bạn
+# Lưu ý: Chúng ta giữ lại placeId và reviewerId để làm khóa ngoại (Foreign Keys)
+review_columns = [
+    'reviewId',
+    'placeId',
+    
+--- code ---
+# 1. Lấy danh sách các store hiện tại để tạo mã mới
+stores_cursor = db["Stores"].find({}, {"placeId": 1, "address": 1}).sort("address", 1)
+stores_list = list(stores_cursor)
+
+# 2. Tạo Mapping Dictionar
+--- code ---
+# Thiết lập Pipeline để "Lookup" (tìm kiếm và nối)
+pipeline = [
+    {
+        # Nối với Collection Stores
+        "$lookup": {
+            "from": "Stores",           # Tên collection cần nối
+        
+--- markdown ---
+# Connect dataset - MongoDB
+--- code ---
+import pymongo
+import pandas as pd
+from google.colab import userdata
+
+def download_raw_reviews_from_mongodb(output_filename='raw_reviews.csv'):
+    # 1. Kết nối MongoDB Atlas
+    uri = userdata.get('M
+--- code ---
+# Cài đặt thư viện kết nối MongoDB và xử lý ngôn ngữ
+!pip install pymongo dnspython transformers underthesea -q
+!pip install googletrans==4.0.0-rc1
+!pip install deep-translator langdetect
+!pip install
+--- code ---
+def fetch_master_data():
+    # 1. Kết nối (Lấy URI từ Secrets cho an toàn)
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Hanoi"]
+
+    # 2. Kéo duy
+--- code ---
+df
+--- markdown ---
+# Preprocessing for EDA
+--- code ---
+def clean_master_data(df):
+    # 1. Chuẩn hóa kiểu thời gian
+    # Chuyển đổi sang datetime, nếu lỗi thì đặt là NaT
+    df['publishedAtDate'] = pd.to_datetime(df['publishedAtDate'], errors='coerce')
+ 
+--- code ---
+df = master_df_cleaned.copy()
+--- code ---
+# Điền "Không có bình luận" cho các ô trống ở cột text
+df['text'] = df['text'].fillna("Không có bình luận")
+
+# Kiểm tra nhanh tỷ lệ khách hàng "im lặng"
+silent_rate = (df['text'] == "Không có bình luậ
+--- code ---
+# Điền "Chưa phản hồi" cho các ô trống
+df['responseFromOwnerText'] = df['responseFromOwnerText'].fillna("Chưa phản hồi")
+--- code ---
+# 1. Tách chuỗi lấy phần đầu tiên trước dấu phẩy
+# 2. Loại bỏ chữ "Quận " hoặc "Huyện " để dữ liệu đồng nhất
+df['district'] = df['state'].str.split(',').str[0] \
+                            .str.repla
+--- code ---
+# 1. Điền giá trị từ address vào street nếu street bị khuyết
+# Chúng ta lấy phần tử đầu tiên sau khi split dấu phẩy
+df['street'] = df['street'].fillna(df['address'].str.split(',').str[0])
+
+# 2. Xử lý 
+--- code ---
+# Kiểm tra lại tất cả các cột quan trọng xem còn null không
+important_columns = ['street', 'district', 'text', 'responseFromOwnerText', 'stars']
+print("Số lượng giá trị null sau khi xử lý:")
+print(df[
+--- code ---
+# Explicitly convert any remaining NaT to None before converting to dict
+df['publishedAtDate'] = df['publishedAtDate'].replace({pd.NaT: None})
+df['responseFromOwnerDate'] = df['responseFromOwnerDate']
+--- markdown ---
+# Feature Engineering
+--- code ---
+def load_cleaned_data():
+    # 1. Kết nối tới MongoDB Atlas
+    # Đảm bảo bạn đã lưu URI vào mục Secrets (biểu tượng chiếc khóa) với tên 'MONGO_URI'
+    uri = userdata.get('MONGO_URI')
+    client = py
+--- markdown ---
+##Temporal Features
+--- code ---
+# 1. Trích xuất các thành phần thời gian
+df['hour'] = df['publishedAtDate'].dt.hour
+df['day_of_week'] = df['publishedAtDate'].dt.dayofweek # 0: Thứ 2, 6: Chủ nhật
+df['month'] = df['publishedAtDate'].d
+--- markdown ---
+##Content Segmentation Features
+--- code ---
+df['text_length'] = df['text'].apply(lambda x: 0 if x == "Không có bình luận" else len(str(x)))
+
+# 1. Tách dữ liệu thành 2 phần: Không có chữ và Có chữ
+df_no_text = df[df['text_length'] == 0].copy()
+d
+--- markdown ---
+##Popularity and Location Features
+--- code ---
+# 1. Từ điển từ khóa -> Tên chi nhánh rút gọn (Cập nhật chuẩn theo bảng 24 chi nhánh)
+# Lưu ý: Các từ khóa được viết thường để dễ so khớp với địa chỉ
+branch_map = {
+    "119 trần duy hưng": "Vincom Ce
+--- markdown ---
+##Interaction Features
+--- code ---
+# 1. Tạo biến nhị phân is_responded
+# True (1): Đã có phản hồi từ quản lý
+# False (0): Chưa có phản hồi (vẫn là "Chưa phản hồi")
+df['is_responded'] = df['responseFromOwnerText'] != "Chưa phản hồi"
+
+# 
+--- markdown ---
+##Target Feature
+--- code ---
+# 1. Chuyển đổi Số sao thành Nhãn cảm xúc (0: Tiêu cực, 1: Tích cực)
+# Quy tắc: stars <= 3 -> 0 | stars >= 4 -> 1
+df['label'] = df['stars'].apply(lambda x: 0 if x <= 3 else 1)
+
+# 2. Kiểm tra độ cân bằ
+--- code ---
+df.head()
+--- code ---
+df.info()
+--- code ---
+def save_final_features_to_mongo(df_final):
+    # 1. Kết nối với MongoDB Atlas
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Hanoi"]
+
+    collecti
+--- markdown ---
+#EDA
+--- code ---
+# ==============================
+# GLOBAL VISUAL STYLE FOR EDA
+# ==============================
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set_theme(
+    style="whitegrid",
+    contex
+--- code ---
+def save_final_features_to_mongo(df_final):
+    # 1. Kết nối với MongoDB Atlas
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Hanoi"]
+
+    collecti
+--- code ---
+def load_data_for_eda():
+    # 1. Kết nối MongoDB Atlas
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Hanoi"]
+    collection = db["Master_Final_An
+--- code ---
+df.info()
+--- code ---
+# ==============================
+# 1. Quy ước màu sắc & Cấu hình
+# ==============================
+# Map màu chuẩn cho từng mức sao (1-5) áp dụng chung cho mọi biểu đồ
+star_color_map = {
+    1: MAIN_RE
+--- code ---
+# ==============================
+# 1. Thống kê Tỷ lệ phản hồi theo Mức sao
+# ==============================
+
+# Vì is_responded là 0 và 1, nên Mean chính là Tỷ lệ phản hồi
+response_summary = df.groupby
+--- code ---
+# ==============================
+# 1. Tổng hợp quy mô review theo chi nhánh
+# ==============================
+
+# Bước 1: Tính số lượng review thu thập được từ dữ liệu chi tiết
+sample_stats = df.groupby
+--- code ---
+# ==============================
+# 1. Các chỉ số chất lượng theo chi nhánh
+# ==============================
+
+branch_quality = (
+    df.groupby('branch_address')
+    .agg(
+        avg_rating=('stars', 
+--- code ---
+# ==============================
+# Tạo bản sao dữ liệu cho phân tích theo thời gian
+# ==============================
+
+df_time = df.copy()
+
+# Tạo biến year_month để phân tích xu hướng qua từng năm
+df_t
+--- code ---
+# ------------------------------
+# 1. Chuẩn hóa Thứ trong tuần
+# ------------------------------
+# Map từ số (0-6) sang chữ
+day_map = {
+    0: 'Monday', 1: 'Tuesday', 2: 'Wednesday',
+    3: 'Thursday',
+--- code ---
+# ==============================
+# 1. Chuẩn bị dữ liệu cho biểu đồ
+# ==============================
+
+# Tạo cột tên nhãn để hiển thị trên Legend
+df['label_name'] = df['label'].map({0: 'Negative', 1: 'P
+--- code ---
+# ==============================
+# 1. Chuẩn hóa nhãn người dùng
+# ==============================
+# Chuyển đổi boolean sang chuỗi định danh
+df['user_type'] = df['isLocalGuide'].map({True: 'Local Guide'
+--- code ---
+# ==========================================================
+# 1. CHUẨN BỊ BIẾN VÀ DỮ LIỆU THÁNG (GỘP NHIỀU NĂM)
+# ==========================================================
+
+# Tạo user_type từ isLoca
+--- code ---
+# ==============================
+# 1. Chọn các biến số phù hợp để tính tương quan
+# ==============================
+# Chúng ta chuyển isLocalGuide (bool) sang int để tính toán
+df['isLocalGuide_int'] = 
+--- markdown ---
+#Preprocessing for Modeling
+--- code ---
+def load_data_from_mongodb():
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Hanoi"]
+
+    # Lấy từ collection đã Feature Engineering ở bước trước
+ 
+--- code ---
+def translate_step(text):
+    if not isinstance(text, str) or text.strip() == "" or text == "Không có bình luận":
+        return ""
+
+    try:
+        # Chỉ dịch nếu không phải tiếng Việt
+        if de
+--- code ---
+def clean_raw_dataframe(df):
+    initial_len = len(df)
+
+    # 1. Loại bỏ các dòng có text là "Không có bình luận" (bất kể hoa thường)
+    df = df[df['text'].str.lower() != "không có bình luận"]
+
+    #
+--- code ---
+df=df_cleaned.copy()
+--- code ---
+# --- BƯỚC 1: DỊCH THUẬT ---
+print("Bước 1: Đang tiến hành dịch thuật (có thể mất thời gian)...")
+df['text_vi'] = df['text'].apply(translate_step)
+
+# Gợi ý của mình: Sau bước này bạn nên lưu df vào fi
+--- code ---
+class PLPreprocessor:
+    def __init__(self):
+        # Khởi tạo bộ dịch sẵn để tránh tạo đối tượng mới liên tục (tăng tốc độ)
+        self.translator = GoogleTranslator(source='auto', target='vi')
+
+ 
+--- code ---
+# Chia Train (70%) và Temp (30%)
+df_train, df_temp = train_test_split(
+    df, test_size=0.3, random_state=42, stratify=df['label']
+)
+
+# Chia Temp thành Val (10% tổng) và Test (20% tổng)
+# 20/30 = 0.6
+--- code ---
+# Chọn ra 10 mẫu ngẫu nhiên để kiểm tra
+# Bạn có thể chọn các dòng có text gốc là tiếng Anh để thấy rõ sức mạnh của GoogleTrans
+test_samples = df.sample(10)
+
+print("🔍 BẢNG ĐỐI CHIẾU DỮ LIỆU TRƯỚC VÀ S
+--- code ---
+def save_to_mongodb(df_data, collection_name):
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Model_Data"]
+
+    # Ép kiểu để tránh lỗi NaT/Category
+--- markdown ---
+# Modeling
+--- code ---
+def load_datasets_from_mongo():
+    # 1. Kết nối tới MongoDB
+    uri = userdata.get('MONGO_URI')
+    client = pymongo.MongoClient(uri)
+    db = client["PhucLong_Model_Data"]
+
+    datasets = {}
+    col
+--- markdown ---
+##PhoBERT
+--- code ---
+# 1. Gộp dữ liệu huấn luyện (giữ lại df_test riêng biệt để đánh giá cuối cùng)
+df_kfold = pd.concat([df_train, df_val]).reset_index(drop=True)
+X = df_kfold['text_processed']
+y = df_kfold['label']
+
+# 2
+--- code ---
+fold_results = []
+fold_cms = [] # Lưu trữ ma trận nhầm lẫn từng fold
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+for fold, (train_idx, val_idx) in enumerate(skf.split(X, y))
+--- markdown ---
+Evaluation - Best model
+--- code ---
+# 1. Tìm fold có kết quả tốt nhất
+f1_scores = [res.get('test_f1', res.get('eval_f1')) for res in fold_results]
+best_fold_idx = np.argmax(f1_scores)
+best_fold_path = f"./phobert_fold_{best_fold_idx + 1
+--- code ---
+# Định nghĩa đường dẫn đích (Shared Drive của nhóm 2)
+export_path = "/content/drive/Shareddrives/PTDL WEB - NHÓM 2/MODEL/best_phobert_phuclong"
+
+# Tiếp tục sau khi đã 'Tải mô hình thành công!'
+try:
+  
+--- code ---
+def predict_with_aspects(text):
+    # 1. Dự đoán cảm xúc tổng thể bằng PhoBERT
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=128).to(device)
+    outputs =
+--- code ---
+import torch
+import numpy as np
+from transformers import Trainer
+
+# 1. Chuẩn bị dữ liệu cho tập Test (Dữ liệu từ MongoDB df_test)
+# Đảm bảo tokenizer đã được load: tokenizer = AutoTokenizer.from_pretr
+--- code ---
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+# Tính ma trận nhầm lẫn
+cm = confusion_matrix(y_true, y_pred)
+
+# Vẽ Heatmap
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, f
+--- markdown ---
+Evaluation - Average
+--- code ---
+# 1. Danh sách lưu kết quả của từng fold trên tập TEST
+test_fold_results = []
+all_fold_cms = []
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+print("🚀 Bắt đầu đánh giá 3 mô hì
+--- code ---
+# 1. Chuyển sang DataFrame để tính toán
+df_test_summary = pd.DataFrame(test_fold_results)
+
+# 2. Tính các giá trị thống kê
+final_report = []
+metrics_list = ['Accuracy', 'F1-Macro', 'Precision', 'Recall
+--- code ---
+# 2. Cộng tổng tất cả các ma trận lại (Element-wise sum)
+# Công thức: CM_total = CM_f1 + CM_f2 + CM_f3 + CM_f4 + CM_f5
+aggregate_cm = np.sum(all_fold_cms, axis=0)
+
+print("✅ Đã tổng hợp xong Ma trận nh
+--- code ---
+def plot_aggregated_cm(cm, title):
+    plt.figure(figsize=(9, 7))
+
+    # Tính tỷ lệ % dựa trên tổng số mẫu của từng hàng (Actual)
+    cm_perc = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    
+--- markdown ---
+##Logistic Regression, SVM, Random Forest, XGBoost
+--- code ---
+# 1. Tải và xử lý Stopwords
+!wget -q https://raw.githubusercontent.com/stopwords/vietnamese-stopwords/master/vietnamese-stopwords.txt
+with open('vietnamese-stopwords.txt', 'r', encoding='utf-8') as f:
+--- code ---
+# Chọn các cột số quan trọng
+# Nhớ chuyển isLocalGuide sang dạng int (0/1) nếu chưa làm
+meta_cols = ['likesCount', 'reviewerNumberOfReviews', 'isLocalGuide', 'text_length', 'hour']
+
+# Chuẩn hóa metada
+--- code ---
+# Hàm gộp dữ liệu và tạo bộ chia PredefinedSplit
+def prepare_grid_search_data(X_train, X_val, y_train, y_val):
+    # Sử dụng vstack của scipy cho ma trận thưa TF-IDF
+    X_combined = vstack([X_train, 
+--- code ---
+# Cấu hình không gian tham số
+model_configs = {
+    'Logistic Regression': {
+        'model': LogisticRegression(max_iter=1000, solver='liblinear'),
+        'params': {'C': [0.1, 1, 10], 'penalty': ['
+--- code ---
+baseline_results = []
+
+for name, model in best_baseline_models.items():
+    # Chọn tập Test tương ứng (Full cho RF/XGB, TF-IDF cho LR/SVM)
+    X_test_input = X_test_ml if name in ['Random Forest', 'XG
+--- code ---
+fig, axes = plt.subplots(2, 2, figsize=(16, 13))
+axes = axes.flatten()
+
+for i, (name, model) in enumerate(best_baseline_models.items()):
+    X_test_input = X_test_ml if name in ['Random Forest', 'XGBo
+--- markdown ---
+K-fold K=3
+--- code ---
+# Gộp Train và Val thành tập Development
+df_dev = pd.concat([df_train, df_val], axis=0).reset_index(drop=True)
+
+# 1. Tái Vector hóa TF-IDF trên tập Dev
+tfidf = TfidfVectorizer(ngram_range=(1, 2), max_
+--- code ---
+# Cập nhật cấu hình mô hình (loại bỏ phần 'data' cũ vì giờ dùng cv=3)
+model_configs = {
+    'Logistic Regression': {
+        'model': LogisticRegression(max_iter=1000, solver='liblinear'),
+        'pa
+--- code ---
+# Dictionary để lưu trữ đối tượng GridSearch (để lấy score từng fold)
+grid_results = {}
+best_kfold_models = {}
+
+for name, config in model_configs.items():
+    print(f"🚀 Đang chạy 3-Fold CV cho {name}.
+--- code ---
+kfold_results = []
+
+for name, model in best_kfold_models.items():
+    # Chọn tập Test tương ứng
+    X_test_input = X_test_full if model_configs[name]['use_full'] else X_test_tfidf
+
+    y_pred = model.
+--- code ---
+final_evaluation = []
+
+for name, grid in grid_results.items():
+    # 1. Lấy kết quả trung bình và độ lệch chuẩn từ 3 Folds
+    mean_cv_f1 = grid.best_score_
+    # Lấy độ lệch chuẩn của F1-macro trên c
+--- code ---
+def generate_full_metrics_report(models_dict, configs, X_test_tfidf, X_test_full, y_test):
+    results = []
+
+    for name, model in models_dict.items():
+        # 1. Chọn dữ liệu đầu vào phù hợp cho t

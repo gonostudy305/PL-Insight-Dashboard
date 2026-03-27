@@ -104,8 +104,10 @@ import { NotificationService, NotificationItem } from '../../services/notificati
       background: var(--pl-primary);
       color: #fff;
       padding: 0 16px;
-      position: sticky;
+      position: fixed;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 1000;
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     }

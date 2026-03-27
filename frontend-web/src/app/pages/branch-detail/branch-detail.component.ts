@@ -1,6 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
@@ -8,7 +9,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-branch-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="page-container">
       <div class="filter-sidebar">
@@ -16,8 +17,17 @@ Chart.register(...registerables);
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
           Chi nhánh
         </h3>
+        <div class="filter-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Khoảng thời gian</label>
+          <select [(ngModel)]="daysFilter" (change)="onFilterChange()" style="width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 6px; background-color: var(--pl-surface); color: var(--color-text); font-size: 14px; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23475569%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; cursor: pointer;">
+            <option [ngValue]="7">7 ngày qua</option>
+            <option [ngValue]="30">30 ngày qua</option>
+            <option [ngValue]="90">90 ngày qua</option>
+            <option [ngValue]="null">Tất cả thời gian</option>
+          </select>
+        </div>
         <div class="filter-group">
-          <label>Điều hướng</label>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Điều hướng</label>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <a routerLink="/map" style="padding: 10px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--pl-surface); color: var(--color-text); text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -128,6 +138,52 @@ Chart.register(...registerables);
                     <span class="issue-count">{{ issue.count }}</span>
                   </div>
                 }
+              </div>
+            </div>
+            
+            <!-- Session Risk Heatmap -->
+            <div class="card full-width" *ngIf="branch.sessionRisk">
+              <div class="card-header-inner">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Đánh giá Rủi ro theo Buổi (Session Risk)
+                </h3>
+              </div>
+              <div class="session-risk-wrapper">
+                <div class="session-block" *ngFor="let s of ['Sáng', 'Trưa', 'Chiều', 'Tối']">
+                  <div class="session-name">{{ s }}</div>
+                  <div class="session-box" 
+                    [style.background-color]="getSessionColor(branch.sessionRisk[s]?.negativeRate || 0)">
+                    <div class="session-rate">
+                      {{ (branch.sessionRisk[s]?.negativeRate || 0).toFixed(1) }}%
+                    </div>
+                    <div class="session-count">
+                      {{ branch.sessionRisk[s]?.negative || 0 }} tiêu cực / {{ branch.sessionRisk[s]?.total || 0 }} review
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- AI Actionable Recommendations -->
+            <div class="card full-width" *ngIf="branch.topIssues?.length > 0">
+              <div class="card-header-inner">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+                  Gợi ý Hành động từ AI
+                </h3>
+              </div>
+              <div style="padding: var(--space-4) var(--space-5);">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <div *ngFor="let issue of branch.topIssues.slice(0, 3)" style="padding: 12px; background: rgba(59, 130, 246, 0.05); border-left: 3px solid var(--color-primary); border-radius: 4px;">
+                    <div style="font-weight: 600; color: var(--color-text); font-size: 14px; margin-bottom: 4px;">
+                      Vấn đề: {{ issue.issue }}
+                    </div>
+                    <div style="font-size: 13px; color: var(--color-text-secondary); line-height: 1.5;">
+                      {{ getAIAdvice(issue.issue) }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -479,6 +535,55 @@ Chart.register(...registerables);
       text-align: center;
       padding: var(--space-6);
     }
+
+    /* Session Risk */
+    .session-risk-wrapper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+    
+    @media (max-width: 768px) {
+      .session-risk-wrapper { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .session-block {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .session-name {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+
+    .session-box {
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-2);
+      text-align: center;
+      color: white;
+      transition: transform var(--transition-fast);
+    }
+    
+    .session-box:hover {
+      transform: translateY(-2px);
+    }
+
+    .session-rate {
+      font-size: var(--font-size-xl);
+      font-weight: 800;
+      margin-bottom: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .session-count {
+      font-size: 11px;
+      opacity: 0.9;
+    }
   `],
 })
 export class BranchDetailComponent implements OnInit, AfterViewInit {
@@ -488,20 +593,30 @@ export class BranchDetailComponent implements OnInit, AfterViewInit {
   private trendChart: Chart | null = null;
   private maxStars = 0;
   private maxIssues = 0;
+  daysFilter: number | null = null;
+  placeId: string = '';
 
   constructor(private api: ApiService, private route: ActivatedRoute) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
-      const placeId = params.get('placeId');
-      if (placeId) this.loadBranch(placeId);
+      const pId = params.get('placeId');
+      if (pId) {
+        this.placeId = pId;
+        this.loadBranch();
+      }
     });
   }
 
   ngAfterViewInit() { }
 
-  loadBranch(placeId: string) {
-    this.api.getBranchDetail(placeId).subscribe({
+  onFilterChange() {
+    this.loadBranch();
+  }
+
+  loadBranch() {
+    if (!this.placeId) return;
+    this.api.getBranchDetail(this.placeId, { days: this.daysFilter }).subscribe({
       next: data => {
         this.branch = data;
         this.maxStars = Math.max(
@@ -516,6 +631,15 @@ export class BranchDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getSessionColor(negativeRate: number): string {
+    if (negativeRate === 0) return '#10B981'; // green for 0%
+    if (negativeRate < 10) return '#34D399'; // light green
+    if (negativeRate < 20) return '#FBBF24'; // yellow
+    if (negativeRate < 30) return '#F59E0B'; // orange
+    if (negativeRate < 50) return '#EF4444'; // red
+    return '#B91C1C'; // dark red
+  }
+
   getStarPercent(star: number): number {
     return ((this.branch?.starDistribution?.[star] || 0) / this.maxStars) * 100;
   }
@@ -525,6 +649,19 @@ export class BranchDetailComponent implements OnInit, AfterViewInit {
   }
 
   getStarsArray(n: number): number[] { return Array(n).fill(0); }
+
+  getAIAdvice(issueName: string): string {
+    const issueMap: Record<string, string> = {
+      'Thái độ': 'Cần tổ chức buổi đào tạo lại về thái độ phục vụ khách hàng. Yêu cầu nhân viên luôn giữ thái độ niềm nở và sẵn sàng hỗ trợ khách.',
+      'Phục vụ chậm': 'Xem xét bổ sung nhân sự vào các khung giờ cao điểm (như buổi tối hoặc cuối tuần). Tối ưu hóa quy trình order và pha chế để giảm thời gian chờ.',
+      'Không gian': 'Kiểm tra lại bố trí bàn ghế và âm thanh. Đảm bảo dọn dẹp thường xuyên vào giờ cao điểm để không gian luôn gọn gàng.',
+      'Vệ sinh': 'Tăng cường tần suất dọn dẹp vệ sinh, đặc biệt là khu vực bàn khách và nhà vệ sinh. Rà soát quy trình quản lý côn trùng định kỳ.',
+      'Giá cả': 'Rà soát lại chất lượng đồ uống/món ăn so với giá tiền. Cân nhắc tung ra các chương trình combo hoặc thẻ thành viên để tăng giá trị cảm nhận.',
+      'Order sai': 'Nhấn mạnh việc nhân viên order phải nhắc lại đơn cho khách trước khi in bill. Dán nhãn rõ ràng lên từng món.',
+      'Đồ uống': 'Kiểm tra lại công thức và tay nghề của barista. Đảm bảo nguyên liệu luôn tươi mới và tuân thủ đúng định lượng tiêu chuẩn.'
+    };
+    return issueMap[issueName] || 'Cần phân tích sâu hơn về nguyên nhân gốc rễ và làm việc trực tiếp với đội ngũ tại chi nhánh.';
+  }
 
   renderTrendChart() {
     if (!this.trendCanvas?.nativeElement || !this.branch?.monthlyTrend?.length) return;
