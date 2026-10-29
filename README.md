@@ -1,175 +1,250 @@
 # PL-Insight Dashboard
 
-**Hệ thống phân tích cảm xúc khách hàng — Phúc Long Coffee & Tea (Hà Nội)**
+<p align="center">
+  <strong>Enterprise-Grade Customer Feedback & Sentiment Analytics Platform</strong><br>
+  <em>Transforming 6,350+ Google Maps Reviews into Operational Intelligence using PhoBERT, Angular 19, Node.js, and FastAPI</em>
+</p>
 
-> Biến 6,350 đánh giá Google Maps thành Actionable Insights bằng PhoBERT AI.
+<p align="center">
+  <a href="https://angular.dev/"><img src="https://img.shields.io/badge/Frontend-Angular_19-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular 19"></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Backend-Node.js_Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/AI_Engine-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://huggingface.co/vinai/phobert-base"><img src="https://img.shields.io/badge/NLP_Model-PhoBERT--base-yellow?style=flat-square" alt="PhoBERT"></a>
+  <a href="https://www.mongodb.com/"><img src="https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB Atlas"></a>
+  <a href="https://nginx.org/"><img src="https://img.shields.io/badge/Reverse_Proxy-NGINX-009639?style=flat-square&logo=nginx&logoColor=white" alt="NGINX"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <strong>English</strong> | <a href="README_VN.md">Tiếng Việt</a>
+</p>
 
 ---
 
-## Kiến trúc
+## 📌 Executive Summary
 
-```
-Angular 19 (:4200)  →  Node.js/Express (:3000)  →  FastAPI/PhoBERT (:8000)
-                              ↕
-                        MongoDB Atlas
+**PL-Insight Dashboard** is an end-to-end sentiment analytics and business intelligence system built for food & beverage retail operations (analyzing **6,350+ real customer reviews** across Phúc Long Coffee & Tea branches in Hanoi).
+
+Traditional customer feedback systems rely solely on star ratings, masking critical operational pain points (e.g., slow service, beverage inconsistency, parking constraints). PL-Insight solves this by bridging the gap between raw unstructured Vietnamese text and executive decision-making through fine-tuned state-of-the-art transformer NLP (**PhoBERT**), automated anomaly detection, and interactive spatial analytics.
+
+---
+
+## 🏗️ System Architecture
+
+The platform is designed as a modular 4-tier microservices architecture with reverse-proxy load balancing for compute-intensive NLP inference:
+
+```mermaid
+flowchart TD
+    Client["Client Tier<br/>Angular 19 (Standalone Components, Lazy-Loaded)"]
+    
+    subgraph Proxy["Load Balancer & Gateway"]
+        Nginx["NGINX Reverse Proxy (:80)<br/>Round-Robin Upstream Pool & Failover"]
+    end
+    
+    subgraph Services["Application & AI Services Tier"]
+        NodeServer["Node.js / Express REST API (:3000)<br/>JWT Auth, Business Logic & Trigger Engine"]
+        FastAPI1["AI Worker 1 (:8000)<br/>FastAPI + PhoBERT-base"]
+        FastAPI2["AI Worker 2 (:8001)<br/>FastAPI + PhoBERT-base"]
+    end
+    
+    subgraph Data["Persistence & Integration"]
+        Mongo[("MongoDB Atlas Cloud<br/>Master Reviews & Historical Alerts")]
+        Telegram["Telegram Webhook Bot<br/>Real-Time Anomaly Notifications"]
+    end
+
+    Client -->|HTTP / JWT Bearer| Nginx
+    Nginx -->|/api/*| NodeServer
+    Nginx -->|/ai/* (Round-Robin)| FastAPI1
+    Nginx -->|/ai/* (Round-Robin)| FastAPI2
+    NodeServer --> Mongo
+    NodeServer --> Telegram
+    FastAPI1 -.-> Mongo
 ```
 
-| Layer | Stack | Vai trò |
+### Architectural Highlights:
+1. **Separation of Concerns**: High-frequency CRUD operations and authentication are handled by Node.js/Express, while heavy machine learning inferences are offloaded to dedicated asynchronous FastAPI workers.
+2. **Inference Scalability**: NGINX distributes prediction workloads across workers using round-robin balancing, preventing I/O blocking during batch scanning.
+3. **Data Integrity & Label Decoupling**: The system strictly separates historical star-derived labels (`label`) from machine-predicted sentiments (`predictedLabel`: 0 = Negative, 1 = Positive, 2 = Mixed).
+
+---
+
+## ✨ Key Feature Modules
+
+| Module | Route | Capabilities |
 |---|---|---|
-| Frontend | Angular 19, Chart.js | Dashboard, Live Monitor, Analytics, Alerts, Branch Detail |
-| Backend | Node.js, Express | REST API, Trigger Engine, Business Logic |
-| AI Server | FastAPI, PhoBERT | Sentiment prediction, keyword extraction |
-| Database | MongoDB Atlas | `Master_Final_Analysis`, `alert_history` |
+| **Executive Dashboard** | `/dashboard` | High-level CSAT scorecards, star distribution curves, multi-month sentiment trends, branch performance rankings, and automated narrative insights with confidence scoring. |
+| **Real-time Live Monitor** | `/live-monitor` | Real-time sentiment ingestion (30s polling), on-the-fly PhoBERT inference, batch scans for unprocessed reviews, and tripartite sentiment filtering (`Positive` / `Negative` / `Mixed`). |
+| **Multi-dimensional Analytics** | `/analytics` | Spatial district density heatmaps, complaint keyword word clouds, 24×7 operational heatmaps (Hour × Day of week), and serving session breakdown (Morning, Noon, Afternoon, Evening). |
+| **Automated Alerts & Webhooks** | `/alerts` | Configurable threshold trigger engine detecting sudden spikes in negative feedback, incident management status workflows, and instant Telegram bot push notifications. |
+| **Branch Scorecard** | `/branches/:placeId` | Granular location analysis, individual branch CSAT trends, localized complaint root-cause analysis, and direct review exploration. |
+| **Semantic Review Explorer** | `/reviews` | Paginated search across 6,350+ entries with combined filters (star rating, sentiment class, keyword regex, and branch location). |
 
 ---
 
-## Cài đặt & Chạy
+## 🔬 NLP & Machine Learning Engineering
 
-### 1. Clone repo
+- **Vietnamese Language Preprocessing (`backend-ai/preprocessor.py`)**:
+  - Normalizes Vietnamese teencode, slang, and dialectal variations.
+  - Parses emojis and punctuation into sentiment signals while stripping noise.
+  - Handles negation syntax (e.g., *"không dở"* vs *"không ngon"*) to prevent false polarities.
+- **PhoBERT Fine-Tuning**:
+  - Leverages pretrained `vinai/phobert-base` with classification heads fine-tuned on customer dining feedback.
+  - Provides sentence-level aspect hints and confidence probabilities.
+
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- **Node.js** v18+ & **npm** v9+
+- **Python** v3.10+
+- **MongoDB Atlas** cluster (or local MongoDB 6.0+)
+- **Angular CLI** (`npm install -g @angular/cli`)
+
+### 1. Repository Setup
 
 ```bash
 git clone https://github.com/gonostudy305/PL-Insight-Dashboard.git
 cd PL-Insight-Dashboard
 ```
 
-### 2. Cấu hình environment
+### 2. Environment Configuration
 
 ```bash
+# Configure Node.js Backend API
 cp backend-server/.env.example backend-server/.env
-# Sửa MONGO_URI, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID trong .env
-```
 
-### 3. Cài dependencies
+# Configure FastAPI AI Engine
+cp backend-ai/.env.example backend-ai/.env
+```
+> *Update `MONGO_URI`, `JWT_SECRET`, and optional `TELEGRAM_BOT_TOKEN` in `backend-server/.env`.*
+
+### 3. Dependencies Installation
 
 ```bash
-# Backend Node.js
+# 1. Backend API dependencies
 cd backend-server && npm install
 
-# Frontend Angular
+# 2. Frontend Angular dependencies
 cd ../frontend-web && npm install
 
-# AI Server (cần Python 3.9+)
+# 3. AI Server dependencies
 cd ../backend-ai && pip install -r requirements.txt
 ```
 
-### 4. Copy model PhoBERT
+### 4. PhoBERT Model Weights
 
-```bash
-# Copy thư mục best_phobert_phuclong vào backend-ai/model/
-# File model (~540MB) không có trên GitHub, cần copy từ Google Drive hoặc local
+Place fine-tuned PhoBERT model artifacts into `backend-ai/model/`.
+*(Note: Large binary model weights ~540MB are excluded from git per version control best practices).*
+
+### 5. Launch the Services
+
+**Option A — Automated Launcher (Windows):**
+```cmd
+start-all.bat
 ```
 
-### 5. Chạy 3 server
-
+**Option B — Manual Launch across Terminals:**
 ```bash
-# Terminal 1: AI Server
+# Terminal 1: AI Inference Server (Port 8000)
 cd backend-ai
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
 
-# Terminal 2: Backend
+# Terminal 2: Node.js API Gateway (Port 3000)
 cd backend-server
 node server.js
 
-# Terminal 3: Frontend
+# Terminal 3: Angular Frontend (Port 4200)
 cd frontend-web
 npx ng serve --port 4200
 ```
 
-### 6. Mở trình duyệt
+Open your browser at **`http://localhost:4200`**.
+
+---
+
+## 🔌 API Specification Overview
+
+| Method | Route | Description | Auth Required |
+|---|---|---|:---:|
+| `POST` | `/api/auth/login` | Authenticate user & issue JWT Bearer token | No |
+| `GET` | `/api/analytics/overview` | Retrieve executive KPIs (total reviews, CSAT, avg rating) | Yes |
+| `GET` | `/api/analytics/distribution` | Star rating distribution breakdown | Yes |
+| `GET` | `/api/analytics/trends` | Time-series monthly sentiment trends | Yes |
+| `GET` | `/api/analytics/district-heatmap`| Spatial density & negative rate by district | Yes |
+| `GET` | `/api/analytics/keywords` | Extracted high-frequency complaint terms | Yes |
+| `GET` | `/api/analytics/heatmap` | 24×7 matrix (Hour of Day × Day of Week) | Yes |
+| `GET` | `/api/analytics/by-session` | Shift-based review distribution (Morning/Noon/Evening) | Yes |
+| `GET` | `/api/analytics/insights` | Automated narrative insights with confidence score | Yes |
+| `GET` | `/api/branches` | Complete branch list with localized performance KPIs | Yes |
+| `GET` | `/api/branches/:placeId` | Detailed scorecard for a specific branch location | Yes |
+| `GET` | `/api/alerts` | Priority queue of unresolved operational incidents | Yes |
+| `POST` | `/api/alerts/scan` | Execute anomaly detection scan across recent feedback | Yes |
+| `PATCH`| `/api/alerts/:alertId/status` | Update incident resolution state | Yes |
+| `GET` | `/api/live-monitor/recent` | Real-time stream of latest AI-classified reviews | Yes |
+| `POST` | `/api/live-monitor/scan` | Trigger batch sentiment inference job | Yes |
+| `GET` | `/api/reviews` | Paginated review catalog with multi-facet filters | Yes |
+| `GET` | `/health` | AI Engine health check & model readiness status | No |
+| `POST` | `/predict` | Single review inference via PhoBERT | No |
+| `POST` | `/predict-batch` | High-throughput batch inference | No |
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+The backend includes a comprehensive regression test suite covering all critical services:
+
+```bash
+cd backend-server
+node scripts/regression-test.js
+```
+
+**Test Coverage Areas:**
+1. Authentication & JWT Interceptors
+2. Analytics Aggregation Pipelines
+3. Review Filtering & Regex Sanitization
+4. Alert Trigger Engine & Threshold Calculations
+5. Branch Scorecard Data Integrity
+6. Live Monitor Polling Contracts
+7. Mixed Sentiment Label Consistency
+
+---
+
+## 📁 Repository Structure
 
 ```
-http://localhost:4200
+PL-Insight-Dashboard/
+├── backend-ai/               # Python FastAPI PhoBERT Inference Service
+│   ├── model/                # Model weights directory (gitignored)
+│   ├── preprocessor.py       # Vietnamese NLP text cleaning & tokenization
+│   ├── main.py               # FastAPI application & endpoints
+│   └── requirements.txt      # Python dependencies
+├── backend-server/           # Node.js & Express REST API Server
+│   ├── routes/               # API route definitions
+│   ├── services/             # Analytics, alert triggers & DB services
+│   ├── scripts/              # Regression tests & migration utilities
+│   └── server.js             # API entry point & middleware setup
+├── frontend-web/             # Angular 19 Single Page Application
+│   ├── src/app/pages/        # Dashboard, Analytics, Live Monitor, Alerts
+│   ├── src/app/services/     # API clients & state management
+│   └── src/app/guards/       # Route authentication guards
+├── nginx/                    # Reverse proxy & load balancing configuration
+├── ARCHITECTURE.md           # In-depth architectural blueprint
+├── README_VN.md              # Vietnamese documentation
+└── LICENSE                   # MIT Open-Source License
 ```
 
 ---
 
-## Các phân hệ
+## 👨‍💻 Author & Academic Context
 
-| Phân hệ | Route | Mô tả |
-|---|---|---|
-| Dashboard | `/dashboard` | KPI, trend chart, star distribution, branch ranking, **insight tự động** |
-| Live Monitor | `/live-monitor` | AI inference thời gian thực, polling 30s, **filter Mixed** |
-| Analytics | `/analytics` | District heatmap, keyword cloud, trend filters, **hour×day heatmap, session chart** |
-| Alerts | `/alerts` | Trigger engine, alert history, status workflow |
-| Branch Detail | `/branches/:placeId` | KPI riêng, trend, star dist, top issues, reviews |
-| Reviews | `/reviews` | Danh sách review phân trang, **filter sentiment/stars/search** |
+- **Developer**: **Huỳnh Văn Vũ** ([@gonostudy305](https://github.com/gonostudy305))
+- **Professional Role**: MarTech Executive
+- **Academic Affiliation**: University of Economics and Law (UEL), Vietnam National University, Ho Chi Minh City (VNU-HCM) — *Department of Information Systems / E-commerce*
+- **Connect**: [LinkedIn Profile](https://www.linkedin.com/in/huynhvanvu305/) | [Portfolio](https://gonovn.me)
 
 ---
 
-## API Endpoints
+## 📄 License
 
-| Method | Endpoint | Mô tả |
-|---|---|---|
-| GET | `/api/analytics/overview` | KPI tổng quan |
-| GET | `/api/analytics/distribution` | Phân bố sao |
-| GET | `/api/analytics/trends` | Xu hướng theo tháng |
-| GET | `/api/analytics/district-heatmap` | Heatmap theo quận |
-| GET | `/api/analytics/keywords` | Từ khóa phàn nàn |
-| GET | `/api/analytics/heatmap` | Negative rate theo giờ × ngày |
-| GET | `/api/analytics/by-session` | Phân bố review theo ca |
-| GET | `/api/analytics/insights` | **[NEW]** Insight narrative tự động (có confidence) |
-| GET | `/api/branches` | Danh sách chi nhánh + KPI |
-| GET | `/api/branches/:placeId` | Chi tiết chi nhánh (4 blocks + topIssues) |
-| GET | `/api/alerts` | Priority queue |
-| GET | `/api/alerts/history` | Alert history |
-| POST | `/api/alerts/scan` | Trigger engine scan |
-| PATCH | `/api/alerts/:alertId/status` | Cập nhật trạng thái alert |
-| GET | `/api/live-monitor/recent` | Review đã phân tích AI (filter: **positive/negative/mixed**) |
-| POST | `/api/live-monitor/scan` | Batch analyze unprocessed reviews |
-| GET | `/api/reviews` | Review phân trang (filter: **sentiment, stars, search**) |
-| GET | `/health` | FastAPI health check |
-| POST | `/predict` | PhoBERT sentiment prediction |
-| POST | `/predict-batch` | Batch prediction |
-
----
-
-## Lưu ý quan trọng
-
-- `label` = nhãn từ sao (KPI lịch sử), `predictedLabel` = PhoBERT output → **tách riêng, không trộn**
-- `predictedLabel` mapping: `1` = Positive, `0` = Negative, `2` = Mixed
-- F1-score là metric đánh giá mô hình, **không phải KPI vận hành**
-- Telegram notifier active khi có `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` trong `.env`
-- File model PhoBERT (~540MB) cần copy local, **không commit lên GitHub**
-- **Mixed historical data**: reviews phân tích trước Phase 3 có thể lưu `predictedLabel=0` cho Mixed. Chạy `node scripts/re-scan-mixed.js` để sửa.
-
----
-
-## Scripts tiện ích
-
-| Script | Mô tả |
-|---|---|
-| `scripts/re-scan-mixed.js` | Fix Mixed lịch sử (hỗ trợ `--dry-run`) |
-| `scripts/regression-test.js` | Regression test tối thiểu (7 nhóm test) |
-
----
-
-## Commits mốc (Phase 2)
-
-| Commit | Nội dung |
-|---|---|
-| Step 1 | Deploy FastAPI + PhoBERT, Layer 3 verified |
-| Step 2 | Live Sentiment Monitor (polling, badges, scan) |
-| Step 3+4 | Analytics page (District Heatmap + Keyword Cloud) |
-| Step 5 | Smart Alert System (trigger, history, status) |
-| Step 6 | Branch Detail page |
-| Step 7 | Final polish + report |
-
-### Phase 3 — Nâng cấp Insight & Fix Bugs
-
-| Hạng mục | Mô tả |
-|---|---|
-| Fix report cutoff | `gatherReportData()` áp `$match timeFilter` cho tất cả query |
-| Fix Mixed→2 | `predictedLabel` mapping 3 giá trị (0/1/2), filter mixed hoạt động |
-| Filter Reviews | Backend nhận `sentiment`, `stars`, `search` (regex escape, `$or` text+branch) |
-| Insight Narrative | `/api/analytics/insights` — 4 insight types, confidence flags, ngưỡng mẫu |
-| Hour×Day Heatmap | Grid 24×7 pre-filled, color scale xanh→đỏ |
-| Session Chart | Bar chart grouped, sort cố định Sáng→Trưa→Chiều→Tối |
-| Empty States | Xử lý empty/error state cho Insight, Heatmap, Session panels |
-| Migration Script | `scripts/re-scan-mixed.js` — fix Mixed lịch sử |
-| Regression Tests | `scripts/regression-test.js` — 7 nhóm test |
-
----
-
-## License
-
-Academic project — PTDL Web, HK8.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
