@@ -1,0 +1,64 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-backend:
+    name: Backend API & AI Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend-server
+          npm install
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install AI Dependencies & Verify Syntax
+        run: |
+          cd backend-ai
+          pip install --upgrade pip
+          pip install flake8 fastapi pydantic uvicorn
+          flake8 main.py preprocessor.py --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Verify AI Mock Inference Fallback
+        run: |
+          cd backend-ai
+          python -c "from main import mock_predict_sentence; label, score = mock_predict_sentence('Trà sữa ngon tuyệt vời'); assert label == 1, 'Failed positive'; label_neg, _ = mock_predict_sentence('Dở tệ và quá chậm'); assert label_neg == 0, 'Failed negative'; print('>>> Mock Mode Verified! <<<')"
+
+  build-frontend:
+    name: Frontend Angular Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend-web
+          npm install
+
+      - name: Build Angular Application
+        run: |
+          cd frontend-web
+          npm run build
