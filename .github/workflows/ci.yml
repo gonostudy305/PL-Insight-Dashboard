@@ -33,7 +33,7 @@ jobs:
         run: |
           cd backend-ai
           pip install --upgrade pip
-          pip install flake8 fastapi pydantic uvicorn
+          pip install flake8 fastapi pydantic uvicorn python-dotenv numpy
           flake8 main.py preprocessor.py --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Verify AI Mock Inference Fallback

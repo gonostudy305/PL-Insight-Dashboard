@@ -7,7 +7,6 @@ Error Contract: { "error": { "code": str, "message": str, "details": str|null } 
 """
 
 import os
-import torch
 import numpy as np
 from pathlib import Path
 from dotenv import load_dotenv
@@ -15,7 +14,16 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+try:
+    import torch
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+except ImportError:
+    torch = None
+    AutoTokenizer = None
+    AutoModelForSequenceClassification = None
+    device = "cpu"
 
 from preprocessor import PLPreprocessor
 
@@ -75,7 +83,6 @@ model = None
 tokenizer = None
 is_mock_mode = False
 preprocessor = PLPreprocessor()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 LABEL_MAP = {0: "Negative", 1: "Positive"}
 
@@ -138,7 +145,17 @@ async def load_model():
     global model, tokenizer, is_mock_mode
 
     model_path = Path(MODEL_PATH)
-    if not model_path.exists():
+    if torch is None or AutoTokenizer is None or not model_path.exists():
+        is_mock_mode = True
+        print("\n" + "=" * 60)
+        if torch is None:
+            print("[NOTICE] PyTorch / Transformers not installed in runtime.")
+        else:
+            print(f"[NOTICE] Model path '{MODEL_PATH}' not found.")
+        print("Activating MOCK / SYNTHETIC INFERENCE MODE for local testing.")
+        print(f"To enable PhoBERT, place model weights in '{MODEL_PATH}'.")
+        print("=" * 60 + "\n")
+        return
         is_mock_mode = True
         print("\n" + "=" * 60)
         print(f"[NOTICE] Model path '{MODEL_PATH}' not found.")
