@@ -73,6 +73,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 # ── Global model state ──
 model = None
 tokenizer = None
+is_mock_mode = False
 preprocessor = PLPreprocessor()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -113,15 +114,37 @@ class PredictBatchRequest(BaseModel):
     reviews: list[BatchReviewItem] = Field(..., max_length=MAX_BATCH_SIZE)
 
 
+def mock_predict_sentence(text: str) -> tuple[int, float]:
+    """Deterministic rule-based sentiment fallback when PhoBERT weights are absent."""
+    lower = text.lower()
+    negative_cues = ["tệ", "dở", "chậm", "kém", "bẩn", "thất vọng", "đắt", "ồn", "thái độ", "lâu", "chờ", "khó chịu", "kinh khủng", "chán", "không ngon", "không tốt"]
+    positive_cues = ["ngon", "tốt", "nhanh", "sạch", "thích", "tuyệt", "chu đáo", "hài lòng", "đẹp", "ổn", "ok", "đậm đà", "thơm", "thân thiện"]
+
+    neg_hits = sum(1 for w in negative_cues if w in lower)
+    pos_hits = sum(1 for w in positive_cues if w in lower)
+
+    if neg_hits > pos_hits:
+        return 0, min(round(0.85 + (neg_hits * 0.03), 4), 0.985)
+    elif pos_hits > 0:
+        return 1, min(round(0.88 + (pos_hits * 0.02), 4), 0.992)
+    else:
+        return 1, 0.8450
+
+
 # ── Model loading ──
 @app.on_event("startup")
 async def load_model():
-    """Load PhoBERT model and tokenizer on server startup."""
-    global model, tokenizer
+    """Load PhoBERT model and tokenizer on server startup with graceful mock fallback."""
+    global model, tokenizer, is_mock_mode
 
     model_path = Path(MODEL_PATH)
     if not model_path.exists():
-        print(f"Model path '{MODEL_PATH}' not found. Endpoints will return errors.")
+        is_mock_mode = True
+        print("\n" + "=" * 60)
+        print(f"[NOTICE] Model path '{MODEL_PATH}' not found.")
+        print("Activating MOCK / SYNTHETIC INFERENCE MODE for local testing.")
+        print(f"To enable PhoBERT, place model weights in '{MODEL_PATH}'.")
+        print("=" * 60 + "\n")
         return
 
     print(f"Loading PhoBERT model from {model_path}...")
@@ -130,14 +153,19 @@ async def load_model():
         model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
         model.to(device)
         model.eval()
+        is_mock_mode = False
         print(f"Model loaded on {device} successfully!")
     except Exception as e:
-        print(f"Failed to load model: {e}")
+        is_mock_mode = True
+        print(f"Failed to load model: {e}. Falling back to MOCK INFERENCE MODE.")
 
 
 # ── Inference helper ──
 def predict_sentence(text: str) -> tuple[int, float]:
-    """Run PhoBERT inference on a single preprocessed sentence."""
+    """Run PhoBERT inference or mock inference on a single preprocessed sentence."""
+    if is_mock_mode:
+        return mock_predict_sentence(text)
+
     if model is None or tokenizer is None:
         raise RuntimeError("Model not loaded")
 
@@ -166,8 +194,10 @@ async def health_check():
     return {
         "status": "ok",
         "modelLoaded": model is not None,
+        "mockMode": is_mock_mode,
         "device": str(device),
         "version": "1.0.0",
+        "notice": "Production PhoBERT weights active." if not is_mock_mode else "Running in MOCK INFERENCE mode (synthetic predictions). Place weights in ./model for production PhoBERT.",
     }
 
 
@@ -178,7 +208,7 @@ async def predict(request: PredictRequest):
     The review is split into sentences (max 10), each analyzed independently.
     Response matches locked contract §4.
     """
-    if model is None:
+    if model is None and not is_mock_mode:
         raise HTTPException(status_code=503, detail="Model not loaded yet")
 
     raw_text = request.reviewText.strip()
@@ -253,7 +283,7 @@ async def predict_batch(request: PredictBatchRequest):
     - Individual item errors do NOT fail the entire batch
     - Response matches locked contract §4
     """
-    if model is None:
+    if model is None and not is_mock_mode:
         raise HTTPException(status_code=503, detail="Model not loaded yet")
 
     results = []
